@@ -10,19 +10,12 @@ class Settings(BaseSettings):
     # Redis (Upstash)
     redis_url: str = "rediss://default:AdzeAAIncDE0YTM1YjMxZTlmOTU0ZjBiYWM1NzkxOGMxZWI3ODUxY3AxNTY1NDI@desired-anemone-56542.upstash.io:6379"
     
-    # S3-Compatible Storage (MinIO, Cloudflare R2, AWS S3)
-    minio_endpoint: str = "localhost:9000"
-    minio_access_key: str = "minioadmin"
-    minio_secret_key: str = "minioadmin123"
-    minio_secure: bool = False
-    
-    # Alternative S3 config (takes priority if set)
-    s3_endpoint: Optional[str] = None
-    s3_access_key: Optional[str] = None
-    s3_secret_key: Optional[str] = None
-    s3_bucket_specs: str = "specs"
-    s3_bucket_artifacts: str = "artifacts"
-    s3_bucket_reports: str = "reports"
+    # S3-Compatible Storage (Cloudflare R2)
+    s3_endpoint: str = "fe4857cacb5f7b71448e7ba88551750d.r2.cloudflarestorage.com"
+    s3_access_key: str = "8777404cd44b2bb5dd75813c902784a7"
+    s3_secret_key: str = "89c191df04e32248bbe71784653abeb3bfe01be865fd36c3946a0e94c9d4584e"
+    s3_bucket: str = "apistresslab"
+    s3_secure: bool = True
     
     # Security
     jwt_secret: str = "super-secret-jwt-key-change-in-production"

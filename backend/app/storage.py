@@ -3,32 +3,35 @@ from .config import settings
 import io
 
 
-def get_minio_client() -> Minio:
+def get_s3_client() -> Minio:
+    """Get S3-compatible client (Cloudflare R2)."""
     return Minio(
-        settings.minio_endpoint,
-        access_key=settings.minio_access_key,
-        secret_key=settings.minio_secret_key,
-        secure=settings.minio_secure
+        settings.s3_endpoint,
+        access_key=settings.s3_access_key,
+        secret_key=settings.s3_secret_key,
+        secure=settings.s3_secure
     )
 
 
-def upload_file(bucket: str, key: str, data: bytes, content_type: str = "application/octet-stream") -> str:
-    """Upload a file to MinIO and return the key."""
-    client = get_minio_client()
+def upload_file(prefix: str, key: str, data: bytes, content_type: str = "application/octet-stream") -> str:
+    """Upload a file to S3. Prefix (specs/artifacts) becomes part of the key."""
+    client = get_s3_client()
+    full_key = f"{prefix}/{key}"
     client.put_object(
-        bucket,
-        key,
+        settings.s3_bucket,
+        full_key,
         io.BytesIO(data),
         len(data),
         content_type=content_type
     )
-    return key
+    return full_key
 
 
-def download_file(bucket: str, key: str) -> bytes:
-    """Download a file from MinIO."""
-    client = get_minio_client()
-    response = client.get_object(bucket, key)
+def download_file(prefix: str, key: str) -> bytes:
+    """Download a file from S3."""
+    client = get_s3_client()
+    full_key = f"{prefix}/{key}"
+    response = client.get_object(settings.s3_bucket, full_key)
     try:
         return response.read()
     finally:
@@ -36,7 +39,8 @@ def download_file(bucket: str, key: str) -> bytes:
         response.release_conn()
 
 
-def delete_file(bucket: str, key: str) -> None:
-    """Delete a file from MinIO."""
-    client = get_minio_client()
-    client.remove_object(bucket, key)
+def delete_file(prefix: str, key: str) -> None:
+    """Delete a file from S3."""
+    client = get_s3_client()
+    full_key = f"{prefix}/{key}"
+    client.remove_object(settings.s3_bucket, full_key)
