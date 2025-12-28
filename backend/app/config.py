@@ -7,8 +7,8 @@ class Settings(BaseSettings):
     # Database (Supabase PostgreSQL)
     database_url: str = "postgresql://postgres:HdaGkwx1H0pZDdqp@db.hmvctdrrudemffnvllbl.supabase.co:5432/postgres"
     
-    # Redis
-    redis_url: str = "redis://localhost:6379/0"
+    # Redis (Upstash)
+    redis_url: str = "rediss://default:AdzeAAIncDE0YTM1YjMxZTlmOTU0ZjBiYWM1NzkxOGMxZWI3ODUxY3AxNTY1NDI@desired-anemone-56542.upstash.io:6379"
     
     # S3-Compatible Storage (MinIO, Cloudflare R2, AWS S3)
     minio_endpoint: str = "localhost:9000"
