@@ -3,18 +3,8 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    environment:
-      - DATABASE_URL=postgresql://postgres:HdaGkwx1H0pZDdqp@db.hmvctdrrudemffnvllbl.supabase.co:5432/postgres
-      - REDIS_URL=rediss://default:AdzeAAIncDE0YTM1YjMxZTlmOTU0ZjBiYWM1NzkxOGMxZWI3ODUxY3AxNTY1NDI@desired-anemone-56542.upstash.io:6379
-      - S3_ENDPOINT=fe4857cacb5f7b71448e7ba88551750d.r2.cloudflarestorage.com
-      - S3_ACCESS_KEY=8777404cd44b2bb5dd75813c902784a7
-      - S3_SECRET_KEY=89c191df04e32248bbe71784653abeb3bfe01be865fd36c3946a0e94c9d4584e
-      - S3_BUCKET=apistresslab
-      - S3_SECURE=true
-      - JWT_SECRET=${JWT_SECRET:-super-secret-jwt-key-change-in-production}
-      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-32-byte-encryption-key-here!!!}
-      - CORS_ORIGINS=http://localhost:3000
-      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    env_file:
+      - .env
     ports:
       - "8000:8000"
     volumes:
@@ -26,16 +16,8 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile.worker
-    environment:
-      - DATABASE_URL=postgresql://postgres:HdaGkwx1H0pZDdqp@db.hmvctdrrudemffnvllbl.supabase.co:5432/postgres
-      - REDIS_URL=rediss://default:AdzeAAIncDE0YTM1YjMxZTlmOTU0ZjBiYWM1NzkxOGMxZWI3ODUxY3AxNTY1NDI@desired-anemone-56542.upstash.io:6379
-      - S3_ENDPOINT=fe4857cacb5f7b71448e7ba88551750d.r2.cloudflarestorage.com
-      - S3_ACCESS_KEY=8777404cd44b2bb5dd75813c902784a7
-      - S3_SECRET_KEY=89c191df04e32248bbe71784653abeb3bfe01be865fd36c3946a0e94c9d4584e
-      - S3_BUCKET=apistresslab
-      - S3_SECURE=true
-      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-32-byte-encryption-key-here!!!}
-      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    env_file:
+      - .env
     volumes:
       - ./backend:/app
       - /var/run/docker.sock:/var/run/docker.sock
