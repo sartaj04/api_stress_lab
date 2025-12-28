@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/lib/auth-context';
 
 export default function LoginPage() {
@@ -32,7 +33,10 @@ export default function LoginPage() {
         <main className="min-h-screen flex items-center justify-center px-6" style={{ background: '#111113' }}>
             <div className="w-full max-w-sm">
                 <div className="text-center mb-8">
-                    <Link href="/" className="text-lg font-semibold text-white">API Stress Lab</Link>
+                    <Link href="/" className="inline-flex items-center gap-2 text-lg font-semibold text-white">
+                        <Image src="/logo.png" alt="API Stress Lab" width={40} height={40} />
+                        API Stress Lab
+                    </Link>
                     <p className="text-white/40 text-sm mt-2">Sign in to your account</p>
                 </div>
 

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/lib/auth-context';
 
 export default function SignupPage() {
@@ -44,7 +45,8 @@ export default function SignupPage() {
         <main className="min-h-screen flex items-center justify-center px-6 animated-bg">
             <div className="w-full max-w-md">
                 <div className="text-center mb-8">
-                    <Link href="/" className="text-3xl font-bold gradient-text">
+                    <Link href="/" className="inline-flex items-center justify-center gap-3 text-3xl font-bold gradient-text">
+                        <Image src="/logo.png" alt="API Stress Lab" width={48} height={48} />
                         API Stress Lab
                     </Link>
                     <h1 className="text-2xl font-semibold mt-6 mb-2">Create your account</h1>
