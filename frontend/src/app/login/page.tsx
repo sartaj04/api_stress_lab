@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useAuth } from '@/lib/auth-context';
+import Logo from '@/components/Logo';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
@@ -33,11 +33,10 @@ export default function LoginPage() {
         <main className="min-h-screen flex items-center justify-center px-6" style={{ background: '#111113' }}>
             <div className="w-full max-w-sm">
                 <div className="text-center mb-8">
-                    <Link href="/" className="inline-flex items-center gap-2 text-lg font-semibold text-white">
-                        <Image src="/logo.png" alt="API Stress Lab" width={40} height={40} />
-                        API Stress Lab
+                    <Link href="/" className="inline-flex justify-center">
+                        <Logo size="lg" />
                     </Link>
-                    <p className="text-white/40 text-sm mt-2">Sign in to your account</p>
+                    <p className="text-white/40 text-sm mt-4">Sign in to your account</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">

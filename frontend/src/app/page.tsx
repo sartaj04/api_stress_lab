@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { useAuth } from '@/lib/auth-context';
+import Logo from '@/components/Logo';
 
 export default function Home() {
     const { user } = useAuth();
@@ -12,9 +12,8 @@ export default function Home() {
             {/* Navigation */}
             <nav className="nav fixed top-0 left-0 right-0 z-50">
                 <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-                    <Link href="/" className="flex items-center gap-2 text-lg font-semibold text-white">
-                        <Image src="/logo.png" alt="API Stress Lab" width={32} height={32} />
-                        API Stress Lab
+                    <Link href="/">
+                        <Logo size="md" />
                     </Link>
                     <div className="flex items-center gap-6">
                         <Link href="#features" className="text-white/60 hover:text-white text-sm transition">
