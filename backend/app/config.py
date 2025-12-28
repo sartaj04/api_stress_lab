@@ -10,11 +10,19 @@ class Settings(BaseSettings):
     # Redis
     redis_url: str = "redis://localhost:6379/0"
     
-    # MinIO
+    # S3-Compatible Storage (MinIO, Cloudflare R2, AWS S3)
     minio_endpoint: str = "localhost:9000"
     minio_access_key: str = "minioadmin"
     minio_secret_key: str = "minioadmin123"
     minio_secure: bool = False
+    
+    # Alternative S3 config (takes priority if set)
+    s3_endpoint: Optional[str] = None
+    s3_access_key: Optional[str] = None
+    s3_secret_key: Optional[str] = None
+    s3_bucket_specs: str = "specs"
+    s3_bucket_artifacts: str = "artifacts"
+    s3_bucket_reports: str = "reports"
     
     # Security
     jwt_secret: str = "super-secret-jwt-key-change-in-production"
