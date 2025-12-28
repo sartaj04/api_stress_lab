@@ -1,20 +1,4 @@
 services:
-  postgres:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-apistress}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-apistress123}
-      POSTGRES_DB: ${POSTGRES_DB:-apistresslab}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5433:5432"
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-apistress}" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   redis:
     image: redis:7-alpine
     ports:
@@ -55,7 +39,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-apistress}:${POSTGRES_PASSWORD:-apistress123}@postgres:5432/${POSTGRES_DB:-apistresslab}
+      - DATABASE_URL=postgresql://postgres:HdaGkwx1H0pZDdqp@db.hmvctdrrudemffnvllbl.supabase.co:5432/postgres
       - REDIS_URL=redis://redis:6379/0
       - MINIO_ENDPOINT=minio:9000
       - MINIO_ACCESS_KEY=${MINIO_ROOT_USER:-minioadmin}
@@ -68,8 +52,6 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      postgres:
-        condition: service_healthy
       redis:
         condition: service_healthy
       minio:
@@ -86,7 +68,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile.worker
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-apistress}:${POSTGRES_PASSWORD:-apistress123}@postgres:5432/${POSTGRES_DB:-apistresslab}
+      - DATABASE_URL=postgresql://postgres:HdaGkwx1H0pZDdqp@db.hmvctdrrudemffnvllbl.supabase.co:5432/postgres
       - REDIS_URL=redis://redis:6379/0
       - MINIO_ENDPOINT=minio:9000
       - MINIO_ACCESS_KEY=${MINIO_ROOT_USER:-minioadmin}
@@ -95,8 +77,6 @@ services:
       - ENCRYPTION_KEY=${ENCRYPTION_KEY:-32-byte-encryption-key-here!!!}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
     depends_on:
-      postgres:
-        condition: service_healthy
       redis:
         condition: service_healthy
       minio:
@@ -124,5 +104,4 @@ services:
       - /app/.next
 
 volumes:
-  postgres_data:
   minio_data:

@@ -4,8 +4,8 @@ import os
 
 
 class Settings(BaseSettings):
-    # Database
-    database_url: str = "postgresql://apistress:apistress123@localhost:5432/apistresslab"
+    # Database (Supabase PostgreSQL)
+    database_url: str = "postgresql://postgres:HdaGkwx1H0pZDdqp@db.hmvctdrrudemffnvllbl.supabase.co:5432/postgres"
     
     # Redis
     redis_url: str = "redis://localhost:6379/0"
