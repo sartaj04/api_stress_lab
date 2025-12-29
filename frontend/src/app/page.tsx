@@ -233,6 +233,10 @@ export default function Home() {
                                     <h4 className="text-white font-medium mb-1">Spike Scenario</h4>
                                     <p className="text-white/40 text-sm">Sudden traffic bursts reveal how your system handles unexpected demand</p>
                                 </div>
+                                <div>
+                                    <h4 className="text-white font-medium mb-1">Chaos Testing</h4>
+                                    <p className="text-white/40 text-sm">Injects artificial latency, connection failures, and traffic bursts to test how your API handles real-world failure conditions and recovers gracefully</p>
+                                </div>
                             </div>
                         </div>
 
