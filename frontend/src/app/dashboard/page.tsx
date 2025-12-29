@@ -21,6 +21,7 @@ export default function DashboardPage() {
     const [viewMode, setViewMode] = useState<ViewMode>('grid');
     const [waitlistJoined, setWaitlistJoined] = useState(false);
     const [joiningWaitlist, setJoiningWaitlist] = useState(false);
+    const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
     const purchaseSuccess = searchParams.get('purchase') === 'success';
     const creditsAdded = searchParams.get('credits');
@@ -74,11 +75,12 @@ export default function DashboardPage() {
         try {
             const result = await auth.joinWaitlist();
             setWaitlistJoined(true);
-            // Show success message (could use a toast library here)
-            alert(result.message);
+            setToast({ message: result.message, type: 'success' });
+            setTimeout(() => setToast(null), 3000);
         } catch (err: any) {
             console.error('Failed to join waitlist', err);
-            alert(err.message || 'Failed to join waitlist. Please try again.');
+            setToast({ message: err.message || 'Failed to join waitlist. Please try again.', type: 'error' });
+            setTimeout(() => setToast(null), 3000);
         } finally {
             setJoiningWaitlist(false);
         }
@@ -185,6 +187,34 @@ export default function DashboardPage() {
 
             {/* Content */}
             <div className="max-w-7xl mx-auto px-6 py-8">
+                {/* Toast Notification */}
+                {toast && (
+                    <div className={`fixed top-20 right-6 z-50 max-w-md ${
+                        toast.type === 'success' 
+                            ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400' 
+                            : 'bg-red-500/10 border border-red-500/20 text-red-400'
+                    } rounded-lg p-4 shadow-lg flex items-center gap-3 transition-all`}>
+                        {toast.type === 'success' ? (
+                            <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                        ) : (
+                            <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        )}
+                        <p className="text-sm font-medium">{toast.message}</p>
+                        <button
+                            onClick={() => setToast(null)}
+                            className="ml-auto text-current/60 hover:text-current"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                )}
+
                 {/* Purchase Success Notice */}
                 {purchaseSuccess && creditsAdded && (
                     <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4 text-emerald-400 text-sm mb-6">

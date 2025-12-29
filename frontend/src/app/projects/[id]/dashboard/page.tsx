@@ -462,6 +462,204 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
                                     {/* Overview Tab */}
                                     {activeTab === 'overview' && (
                                         <div className="space-y-6">
+                                            {/* Key Insights Summary */}
+                                            {(() => {
+                                                // Aggregate insights from all profile reports
+                                                const completedResults = suite.results.filter(r => r.status === 'completed');
+                                                const reportsWithInsights = completedResults
+                                                    .map(r => ({ result: r, report: profileReports[r.run_id] }))
+                                                    .filter(({ report }) => report && report.capacity_insights);
+
+                                                if (reportsWithInsights.length === 0) return null;
+
+                                                // Aggregate metrics
+                                                const maxStableUsers = Math.max(
+                                                    ...reportsWithInsights.map(({ report }) => report.capacity_insights.max_stable_users || 0)
+                                                );
+                                                
+                                                const latencyInflections = reportsWithInsights
+                                                    .map(({ report }) => report.capacity_insights.latency_inflection_users)
+                                                    .filter(v => v !== null && v !== undefined);
+                                                const minLatencyInflection = latencyInflections.length > 0 ? Math.min(...latencyInflections) : null;
+
+                                                const breakingPoints = reportsWithInsights
+                                                    .map(({ report }) => report.capacity_insights.breaking_point_users)
+                                                    .filter(v => v !== null && v !== undefined);
+                                                const minBreakingPoint = breakingPoints.length > 0 ? Math.min(...breakingPoints) : null;
+
+                                                // Find APIs that break (first_to_break from any profile)
+                                                const breakingAPIs = reportsWithInsights
+                                                    .map(({ report, result }) => ({
+                                                        endpoint: report.capacity_insights.endpoint_analysis?.first_to_break,
+                                                        profile: result.suite_profile_name
+                                                    }))
+                                                    .filter(item => item.endpoint)
+                                                    .map(item => ({
+                                                        endpoint: item.endpoint.endpoint || `${item.endpoint.method || ''} ${item.endpoint.path || ''}`.trim(),
+                                                        profile: item.profile,
+                                                        errorRate: item.endpoint.error_rate || 0
+                                                    }));
+
+                                                // Find APIs with highest latency (aggregate across all profiles)
+                                                const latencyRankings: Array<{ endpoint: string; p95: number; profile: string }> = [];
+                                                reportsWithInsights.forEach(({ report, result }) => {
+                                                    const rankings = report.capacity_insights.endpoint_analysis?.rankings_by_latency || [];
+                                                    rankings.forEach((rank: any) => {
+                                                        latencyRankings.push({
+                                                            endpoint: rank.endpoint || `${rank.method || ''} ${rank.path || ''}`.trim(),
+                                                            p95: rank.p95 || 0,
+                                                            profile: result.suite_profile_name
+                                                        });
+                                                    });
+                                                });
+
+                                                // Deduplicate endpoints and keep highest latency
+                                                const endpointLatencyMap = new Map<string, { p95: number; profile: string }>();
+                                                latencyRankings.forEach(item => {
+                                                    const existing = endpointLatencyMap.get(item.endpoint);
+                                                    if (!existing || item.p95 > existing.p95) {
+                                                        endpointLatencyMap.set(item.endpoint, { p95: item.p95, profile: item.profile });
+                                                    }
+                                                });
+
+                                                // Get top 3 slowest APIs
+                                                const slowestAPIs = Array.from(endpointLatencyMap.entries())
+                                                    .map(([endpoint, data]) => ({
+                                                        endpoint,
+                                                        p95: data.p95,
+                                                        profile: data.profile
+                                                    }))
+                                                    .sort((a, b) => b.p95 - a.p95)
+                                                    .slice(0, 3);
+
+                                                // Get concurrent users tested per profile
+                                                const concurrentUsersTested = reportsWithInsights.map(({ report, result }) => ({
+                                                    profile: result.suite_profile_name,
+                                                    users: report.capacity_insights.tested_vus || 0
+                                                }));
+
+                                                return (
+                                                    <div className="card p-5">
+                                                        <div className="flex items-center gap-3 mb-5">
+                                                            <div className="p-2 bg-emerald-500/10 rounded">
+                                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-emerald-400">
+                                                                    <path d="M9 11l3 3L22 4" />
+                                                                    <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
+                                                                </svg>
+                                                            </div>
+                                                            <h3 className="text-xl font-semibold text-white">Key Insights</h3>
+                                                        </div>
+
+                                                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                                                            {/* Total Users Supported */}
+                                                            <div className="bg-white/[0.02] rounded-lg border border-white/[0.06] p-4">
+                                                                <div className="flex items-center gap-2 mb-2">
+                                                                    <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                                                    <span className="text-white/50 text-xs font-medium uppercase">Total Users Supported</span>
+                                                                </div>
+                                                                <div className="text-3xl font-bold text-emerald-400 mb-1">{maxStableUsers}</div>
+                                                                <div className="text-xs text-white/40">Maximum stable concurrent users across all tests</div>
+                                                            </div>
+
+                                                            {/* Concurrent Users Tested */}
+                                                            <div className="bg-white/[0.02] rounded-lg border border-white/[0.06] p-4">
+                                                                <div className="flex items-center gap-2 mb-2">
+                                                                    <span className="w-2 h-2 rounded-full bg-blue-400"></span>
+                                                                    <span className="text-white/50 text-xs font-medium uppercase">Concurrent Users Tested</span>
+                                                                </div>
+                                                                <div className="space-y-1">
+                                                                    {concurrentUsersTested.map((item, i) => (
+                                                                        <div key={i} className="flex justify-between items-center text-sm">
+                                                                            <span className="text-white/60">{item.profile}:</span>
+                                                                            <span className="text-white font-medium">{item.users} users</span>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+
+                                                            {/* When It Slows Down */}
+                                                            {minLatencyInflection && (
+                                                                <div className="bg-white/[0.02] rounded-lg border border-white/[0.06] p-4">
+                                                                    <div className="flex items-center gap-2 mb-2">
+                                                                        <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                                                                        <span className="text-white/50 text-xs font-medium uppercase">Performance Degrades</span>
+                                                                    </div>
+                                                                    <div className="text-3xl font-bold text-amber-400 mb-1">{minLatencyInflection}</div>
+                                                                    <div className="text-xs text-white/40">Latency increases significantly after {minLatencyInflection} users</div>
+                                                                </div>
+                                                            )}
+
+                                                            {/* When It Breaks */}
+                                                            {minBreakingPoint && (
+                                                                <div className="bg-white/[0.02] rounded-lg border border-white/[0.06] p-4">
+                                                                    <div className="flex items-center gap-2 mb-2">
+                                                                        <span className="w-2 h-2 rounded-full bg-red-400"></span>
+                                                                        <span className="text-white/50 text-xs font-medium uppercase">Breaking Point</span>
+                                                                    </div>
+                                                                    <div className="text-3xl font-bold text-red-400 mb-1">{minBreakingPoint}</div>
+                                                                    <div className="text-xs text-white/40">System breaks at {minBreakingPoint} concurrent users</div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        {/* APIs That Break */}
+                                                        {breakingAPIs.length > 0 && (
+                                                            <div className="bg-white/[0.02] rounded-lg border border-white/[0.06] p-4 mb-4">
+                                                                <h4 className="font-medium text-white mb-3 flex items-center gap-2">
+                                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-red-400">
+                                                                        <circle cx="12" cy="12" r="10" />
+                                                                        <line x1="12" y1="8" x2="12" y2="12" />
+                                                                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                                                                    </svg>
+                                                                    APIs That Break First
+                                                                </h4>
+                                                                <div className="space-y-2">
+                                                                    {breakingAPIs.map((api, i) => (
+                                                                        <div key={i} className="flex items-start justify-between gap-3 p-2 bg-red-500/5 rounded border border-red-500/10">
+                                                                            <div className="flex-1">
+                                                                                <div className="text-white font-medium text-sm">{api.endpoint}</div>
+                                                                                <div className="text-xs text-white/50 mt-0.5">Profile: {api.profile}</div>
+                                                                            </div>
+                                                                            <div className="text-right">
+                                                                                <div className="text-red-400 font-semibold text-sm">{(api.errorRate * 100).toFixed(1)}%</div>
+                                                                                <div className="text-xs text-white/40">error rate</div>
+                                                                            </div>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        {/* APIs With High Latency */}
+                                                        {slowestAPIs.length > 0 && (
+                                                            <div className="bg-white/[0.02] rounded-lg border border-white/[0.06] p-4">
+                                                                <h4 className="font-medium text-white mb-3 flex items-center gap-2">
+                                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-amber-400">
+                                                                        <circle cx="12" cy="12" r="10" />
+                                                                        <polyline points="12 6 12 12 16 14" />
+                                                                    </svg>
+                                                                    APIs With Highest Latency
+                                                                </h4>
+                                                                <div className="space-y-2">
+                                                                    {slowestAPIs.map((api, i) => (
+                                                                        <div key={i} className="flex items-start justify-between gap-3 p-2 bg-amber-500/5 rounded border border-amber-500/10">
+                                                                            <div className="flex-1">
+                                                                                <div className="text-white font-medium text-sm">{api.endpoint}</div>
+                                                                                <div className="text-xs text-white/50 mt-0.5">Profile: {api.profile}</div>
+                                                                            </div>
+                                                                            <div className="text-right">
+                                                                                <div className="text-amber-400 font-semibold text-sm">{api.p95.toFixed(0)}ms</div>
+                                                                                <div className="text-xs text-white/40">P95 latency</div>
+                                                                            </div>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })()}
+
                                             {/* Comparison Chart */}
                                             <div className="card p-5">
                                                 <h3 className="font-medium text-white mb-4">Performance Comparison</h3>
