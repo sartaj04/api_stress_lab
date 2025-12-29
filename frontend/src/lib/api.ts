@@ -554,6 +554,7 @@ export interface SuiteResults {
     results: SuiteProfileResult[];
     comparison: SuiteComparison;
     ai_summary?: SuiteAISummary;
+    scenario_id?: number;
 }
 
 // Credit Billing Types
