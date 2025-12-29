@@ -129,11 +129,13 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <Link href="/dashboard" className="text-white/40 hover:text-white transition text-sm">
-                                Back
+                                ← Projects
                             </Link>
+                            <span className="text-white/20">|</span>
                             <h1 className="text-lg font-medium text-white">{project.name}</h1>
+                            <span className="text-xs text-white/40 bg-white/[0.03] px-2 py-1 rounded">Configuration</span>
                         </div>
-                        <Link href={`/projects/${projectId}/dashboard`} className="text-white/50 hover:text-white text-sm transition">
+                        <Link href={`/projects/${projectId}/dashboard`} className="btn-secondary text-sm">
                             View Results
                         </Link>
                     </div>

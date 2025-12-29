@@ -142,7 +142,7 @@ export default function DashboardPage() {
                         {projectsList.map((project) => (
                             <Link
                                 key={project.id}
-                                href={`/projects/${project.id}`}
+                                href={`/projects/${project.id}/dashboard`}
                                 className="card p-5 flex justify-between items-center block hover:border-white/15 transition"
                             >
                                 <div>

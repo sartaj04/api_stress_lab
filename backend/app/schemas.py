@@ -237,7 +237,7 @@ class BreakingPoints(BaseModel):
 
 
 class Headroom(BaseModel):
-    percentage: int
+    percentage: float
     explanation: str
     scale_recommendation: str
 
