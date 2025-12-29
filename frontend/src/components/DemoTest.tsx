@@ -212,10 +212,10 @@ export default function DemoTest() {
                         Try it now
                     </span>
                     <h2 className="text-3xl md:text-4xl font-semibold text-white mb-3" style={{ lineHeight: '1.2' }}>
-                        Run a Demo Stress Test
+                        See how your API behaves under realistic traffic
                     </h2>
                     <p className="text-white/50 max-w-lg mx-auto">
-                        Experience API load testing instantly. No signup required.
+                        Experience realistic load scenarios instantly. No signup required.
                     </p>
                 </div>
 
@@ -554,14 +554,14 @@ export default function DemoTest() {
                                                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                                                     <polyline points="22 4 12 14.01 9 11.01" />
                                                 </svg>
-                                                Endpoint rankings
+                                                Bottleneck identification
                                             </div>
                                             <div className="flex items-center gap-1.5 justify-center">
                                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-emerald-400/60">
                                                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                                                     <polyline points="22 4 12 14.01 9 11.01" />
                                                 </svg>
-                                                AI-powered analysis
+                                                AI-powered traffic modeling
                                             </div>
                                         </div>
                                     </div>
@@ -592,7 +592,7 @@ export default function DemoTest() {
                                         </div>
                                     </div>
 
-                                    <h4 className="text-sm font-medium text-white/60 mb-4">Advanced Metrics</h4>
+                                    <h4 className="text-sm font-medium text-white/60 mb-4">Detailed Performance Metrics</h4>
                                     <div className="grid grid-cols-3 gap-4 mb-6">
                                         <div className="bg-white/[0.03] rounded-lg p-4">
                                             <div className="text-xs text-white/40 mb-1">P50 Latency</div>
@@ -650,9 +650,15 @@ export default function DemoTest() {
 
                 {/* Bottom CTA */}
                 {state === 'idle' && (
-                    <div className="mt-8 text-center">
-                        <p className="text-white/40 text-sm">
-                            Want to test your own APIs with higher limits?{' '}
+                    <div className="mt-8 text-center space-y-3">
+                        <p className="text-white/50 text-sm">
+                            The demo uses simplified scenarios. Full tests use AI-generated traffic patterns that mimic real user behavior and production usage.
+                        </p>
+                        <p className="text-white/40 text-xs">
+                            Full reports include breaking point detection, traffic headroom, bottleneck analysis, and fix recommendations.
+                        </p>
+                        <p className="text-white/40 text-sm pt-2">
+                            Want to test your own APIs?{' '}
                             <Link href="/signup" className="text-white hover:underline">
                                 Create a free account →
                             </Link>

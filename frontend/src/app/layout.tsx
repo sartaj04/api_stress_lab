@@ -6,8 +6,13 @@ import { AuthProvider } from '@/lib/auth-context';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-    title: 'API Stress Lab - Load Testing Made Easy',
-    description: 'Professional API load testing using OpenAPI specs. Test your APIs, find bottlenecks, and optimize performance.',
+    title: 'API Performance Testing - Find Breaking Points Before Launch',
+    description: 'AI-powered API capacity assessment. Discover exactly where your API breaks, what fails first, and what to fix before users encounter problems. Realistic traffic scenarios from your OpenAPI spec.',
+    keywords: 'API load testing, API stress testing, realistic traffic simulation, API breaking point, performance bottleneck detection, pre-launch performance testing, API scalability testing',
+    openGraph: {
+        title: 'API Performance Testing - Find Breaking Points Before Launch',
+        description: 'AI-powered API capacity assessment. Discover exactly where your API breaks, what fails first, and what to fix before users encounter problems. Realistic traffic scenarios from your OpenAPI spec.',
+    },
 };
 
 export default function RootLayout({
