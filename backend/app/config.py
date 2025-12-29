@@ -40,6 +40,15 @@ class Settings(BaseSettings):
     # App URLs
     frontend_url: str = "http://localhost:3000"
     
+    # Email (SMTP) - Optional, for password reset emails
+    smtp_enabled: bool = False
+    smtp_host: Optional[str] = None
+    smtp_port: int = 587
+    smtp_use_tls: bool = True
+    smtp_username: Optional[str] = None
+    smtp_password: Optional[str] = None
+    smtp_from_email: str = "noreply@apistresslab.com"
+    
     # Credit packages: {price_id: {name, credits, price_cents}}
     credit_packages: dict = {
         "price_intro": {"name": "Intro", "credits": 150, "price_cents": 1000},

@@ -3,12 +3,18 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 import httpx
 from typing import Optional
+from datetime import datetime, timedelta
+import secrets
 
 from ..database import get_db
-from ..models import User
-from ..schemas import UserCreate, UserLogin, UserResponse, TokenResponse, ApiKeyCreate, ApiKeyResponse
+from ..models import User, PasswordResetToken
+from ..schemas import (
+    UserCreate, UserLogin, UserResponse, TokenResponse, ApiKeyCreate, ApiKeyResponse,
+    ForgotPasswordRequest, ResetPasswordRequest
+)
 from ..auth import hash_password, verify_password, create_access_token, get_current_user, generate_api_key
 from ..config import settings
+from ..email import send_password_reset_email
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -292,3 +298,78 @@ async def google_token_auth(data: GoogleTokenRequest, db: Session = Depends(get_
         
     except httpx.RequestError as e:
         raise HTTPException(status_code=500, detail=f"Failed to verify token: {str(e)}")
+
+
+# ============ Password Reset ============
+
+@router.post("/forgot-password")
+def forgot_password(request: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    """
+    Request a password reset. Sends an email with a reset link if the user exists.
+    Always returns success to prevent email enumeration.
+    """
+    user = db.query(User).filter(User.email == request.email).first()
+    
+    # Only proceed if user exists and has a password (not OAuth-only)
+    if user and user.hashed_password:
+        # Generate a secure token
+        token = secrets.token_urlsafe(32)
+        
+        # Create reset token record (expires in 1 hour)
+        reset_token = PasswordResetToken(
+            user_id=user.id,
+            token=token,
+            expires_at=datetime.utcnow() + timedelta(hours=1)
+        )
+        db.add(reset_token)
+        db.commit()
+        
+        # Build reset URL
+        reset_url = f"{settings.frontend_url}/reset-password?token={token}"
+        
+        # Send email
+        send_password_reset_email(user.email, token, reset_url)
+    
+    # Always return success to prevent email enumeration
+    return {"message": "If an account with that email exists, a password reset link has been sent."}
+
+
+@router.post("/reset-password")
+def reset_password(request: ResetPasswordRequest, db: Session = Depends(get_db)):
+    """
+    Reset password using a valid reset token.
+    """
+    # Find the reset token
+    reset_token = db.query(PasswordResetToken).filter(
+        PasswordResetToken.token == request.token,
+        PasswordResetToken.used == False,
+        PasswordResetToken.expires_at > datetime.utcnow()
+    ).first()
+    
+    if not reset_token:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid or expired reset token"
+        )
+    
+    # Get the user
+    user = db.query(User).filter(User.id == reset_token.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Update password
+    user.hashed_password = hash_password(request.new_password)
+    
+    # Mark token as used
+    reset_token.used = True
+    
+    # Delete any other unused tokens for this user (excluding the current one)
+    db.query(PasswordResetToken).filter(
+        PasswordResetToken.user_id == user.id,
+        PasswordResetToken.used == False,
+        PasswordResetToken.id != reset_token.id
+    ).delete()
+    
+    db.commit()
+    
+    return {"message": "Password has been reset successfully"}

@@ -33,6 +33,7 @@ class User(Base):
     api_keys = relationship("ApiKey", back_populates="user", cascade="all, delete-orphan")
     runs = relationship("Run", back_populates="user", cascade="all, delete-orphan")
     credit_transactions = relationship("CreditTransaction", back_populates="user", cascade="all, delete-orphan")
+    password_reset_tokens = relationship("PasswordResetToken", back_populates="user", cascade="all, delete-orphan")
 
 
 class CreditTransaction(Base):
@@ -219,3 +220,17 @@ class SuiteCache(Base):
     comparison = Column(JSONB, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class PasswordResetToken(Base):
+    """Password reset tokens for forgot password functionality."""
+    __tablename__ = "password_reset_tokens"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    token = Column(String(255), unique=True, nullable=False, index=True)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    used = Column(Boolean, nullable=False, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    user = relationship("User", back_populates="password_reset_tokens")

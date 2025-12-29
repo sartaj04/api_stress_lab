@@ -98,6 +98,18 @@ export const auth = {
 
     deleteApiKey: (id: number) =>
         request<void>(`/auth/api-keys/${id}`, { method: 'DELETE' }),
+
+    forgotPassword: (email: string) =>
+        request<{ message: string }>('/auth/forgot-password', {
+            method: 'POST',
+            body: { email },
+        }),
+
+    resetPassword: (token: string, newPassword: string) =>
+        request<{ message: string }>('/auth/reset-password', {
+            method: 'POST',
+            body: { token, new_password: newPassword },
+        }),
 };
 
 // Projects
