@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
-import { projects, runs, Project, billing, CreditBalance } from '@/lib/api';
+import { projects, runs, Project, billing, CreditBalance, SuiteResults } from '@/lib/api';
 import {
     LineChart,
     Line,
@@ -20,31 +20,6 @@ import {
     Bar
 } from 'recharts';
 
-interface SuiteResult {
-    run_id: number;
-    suite_profile: string;
-    suite_profile_name: string;
-    suite_profile_description: string;
-    status: string;
-    error_rate: number;
-    avg_latency: number;
-    p95: number;
-    max_stable_rps: number;
-    total_requests: number;
-    timeseries: { time: number; rps: number; p50: number; p95: number; error_rate: number }[];
-}
-
-interface LatestSuite {
-    suite_id: string;
-    status: string;
-    total_tests: number;
-    completed_tests: number;
-    results: SuiteResult[];
-    comparison: any;
-    ai_summary: any;
-    scenario_id?: number;
-}
-
 export default function ProjectDashboardPage({ params }: { params: { id: string } }) {
     const { user, loading: authLoading, logout } = useAuth();
     const router = useRouter();
@@ -52,7 +27,7 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
     const projectId = parseInt(params.id);
 
     const [project, setProject] = useState<Project | null>(null);
-    const [suite, setSuite] = useState<LatestSuite | null>(null);
+    const [suite, setSuite] = useState<SuiteResults | null>(null);
     const [selectedSuiteId, setSelectedSuiteId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<string>('overview');
@@ -173,7 +148,7 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
         }
     };
 
-    const loadAllProfileReports = async (suiteData: LatestSuite) => {
+    const loadAllProfileReports = async (suiteData: SuiteResults) => {
         // Load all completed profile reports on page load
         const completedResults = suiteData.results.filter(r => r.status === 'completed');
 

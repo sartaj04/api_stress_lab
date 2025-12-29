@@ -518,6 +518,7 @@ export interface SuiteProfileResult {
     p95: number;
     max_stable_rps: number;
     total_requests: number;
+    timeseries: { time: number; rps: number; p50: number; p95: number; p99: number; error_rate: number }[];
 }
 
 export interface SuiteComparison {
