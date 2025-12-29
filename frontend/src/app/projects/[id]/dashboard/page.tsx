@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
@@ -68,13 +68,7 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
         }
     }, [user, authLoading, router]);
 
-    useEffect(() => {
-        if (user && projectId) {
-            loadData();
-        }
-    }, [user, projectId]);
-
-    const loadData = async (suiteIdToLoad?: string) => {
+    const loadData = useCallback(async (suiteIdToLoad?: string) => {
         try {
             setLoadingSteps(['Loading project details']);
             const [projectData, historyData, balanceData] = await Promise.all([
@@ -126,7 +120,13 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
             setLoading(false);
             setLoadingSteps([]);
         }
-    };
+    }, [projectId, selectedSuiteId]);
+
+    useEffect(() => {
+        if (user && projectId) {
+            loadData();
+        }
+    }, [user, projectId, loadData]);
 
     const loadSuite = async (suiteId: string) => {
         setSelectedSuiteId(suiteId);
