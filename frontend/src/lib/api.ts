@@ -110,11 +110,23 @@ export const auth = {
             method: 'POST',
             body: { token, new_password: newPassword },
         }),
+
+    joinWaitlist: () =>
+        request<{ message: string; already_joined: boolean; joined_at: string | null }>('/auth/waitlist/join', {
+            method: 'POST',
+        }),
+
+    getWaitlistStatus: () =>
+        request<{ joined: boolean; joined_at: string | null }>('/auth/waitlist/status'),
 };
 
 // Projects
 export const projects = {
     list: () => request<Project[]>('/projects'),
+
+    listWithStats: () => request<ProjectWithStats[]>('/projects/with-stats'),
+
+    getUsageStats: () => request<UsageStats>('/projects/usage/stats'),
 
     get: (id: number) => request<Project>(`/projects/${id}`),
 
@@ -226,6 +238,7 @@ export interface User {
     email: string;
     credit_balance: number;
     free_credits_claimed: boolean;
+    observability_waitlist_joined?: boolean;
     last_opened_project_id?: number;
     auth_provider: 'email' | 'google';
     full_name?: string;
@@ -250,6 +263,25 @@ export interface Project {
     last_suite_id?: string;  // For dashboard
     created_at: string;
     updated_at: string;
+}
+
+export interface UsageStats {
+    total_runs: number;
+    completed_runs: number;
+    total_requests: number;
+    total_duration_seconds: number;
+    period_days: number;
+}
+
+export interface ProjectWithStats extends Project {
+    total_runs: number;
+    latest_suite?: {
+        suite_id: string;
+        status: string;
+        created_at: string | null;
+        commit_message: string;
+    };
+    latest_run_at: string | null;
 }
 
 export interface Spec {

@@ -25,6 +25,10 @@ class User(Base):
     free_credits_claimed = Column(Boolean, nullable=False, default=False)
     stripe_customer_id = Column(String(255), unique=True, nullable=True, index=True)
     
+    # Waitlist
+    observability_waitlist_joined = Column(Boolean, nullable=False, default=False)
+    waitlist_joined_at = Column(DateTime(timezone=True), nullable=True)
+    
     last_opened_project_id = Column(Integer, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

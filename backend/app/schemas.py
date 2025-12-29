@@ -28,6 +28,7 @@ class UserResponse(BaseModel):
     email: str
     credit_balance: int
     free_credits_claimed: bool
+    observability_waitlist_joined: bool = False
     last_opened_project_id: Optional[int] = None
     auth_provider: str = "email"
     full_name: Optional[str] = None

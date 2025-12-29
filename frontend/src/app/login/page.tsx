@@ -32,6 +32,12 @@ export default function LoginPage() {
     return (
         <main className="min-h-screen flex items-center justify-center px-6" style={{ background: '#111113' }}>
             <div className="w-full max-w-sm">
+                <Link href="/" className="inline-flex items-center gap-2 text-white/60 hover:text-white text-sm mb-6 transition">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back to Home
+                </Link>
                 <div className="text-center mb-8">
                     <Link href="/" className="inline-flex justify-center">
                         <Logo size="lg" />

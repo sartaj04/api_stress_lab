@@ -4,6 +4,7 @@ from pydantic import BaseModel
 import httpx
 from typing import Optional
 from datetime import datetime, timedelta
+from sqlalchemy.sql import func
 import secrets
 
 from ..database import get_db
@@ -373,3 +374,39 @@ def reset_password(request: ResetPasswordRequest, db: Session = Depends(get_db))
     db.commit()
     
     return {"message": "Password has been reset successfully"}
+
+
+@router.post("/waitlist/join")
+def join_waitlist(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Join the observability waitlist."""
+    if current_user.observability_waitlist_joined:
+        return {
+            "message": "You're already on the waitlist!",
+            "already_joined": True,
+            "joined_at": current_user.waitlist_joined_at.isoformat() if current_user.waitlist_joined_at else None
+        }
+    
+    current_user.observability_waitlist_joined = True
+    current_user.waitlist_joined_at = datetime.utcnow()
+    db.commit()
+    
+    return {
+        "message": "You've been added to the waitlist! We'll let you know when observability features are available.",
+        "already_joined": False,
+        "joined_at": current_user.waitlist_joined_at.isoformat()
+    }
+
+
+@router.get("/waitlist/status")
+def get_waitlist_status(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get waitlist status for current user."""
+    return {
+        "joined": current_user.observability_waitlist_joined,
+        "joined_at": current_user.waitlist_joined_at.isoformat() if current_user.waitlist_joined_at else None
+    }

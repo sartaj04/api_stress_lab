@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from typing import List
+from datetime import datetime, timedelta
 
 from ..database import get_db
-from ..models import User, Project, ProjectSecret, Spec, Scenario, Run
+from ..models import User, Project, ProjectSecret, Spec, Scenario, Run, RunMetricsTimeseries
 from ..schemas import (
     ProjectCreate, ProjectUpdate, ProjectResponse, ProjectAuthConfig,
     SpecResponse, ScenarioCreate, ScenarioUpdate, ScenarioResponse,
@@ -45,6 +47,120 @@ def list_projects(
     """List all projects for current user."""
     projects = db.query(Project).filter(Project.user_id == current_user.id).all()
     return projects
+
+
+@router.get("/usage/stats")
+def get_usage_stats(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get usage statistics for the current user (last 30 days)."""
+    thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+    
+    # Get all user's project IDs
+    user_project_ids = [p.id for p in db.query(Project.id).filter(Project.user_id == current_user.id).all()]
+    
+    if not user_project_ids:
+        return {
+            "total_runs": 0,
+            "completed_runs": 0,
+            "total_requests": 0,
+            "total_duration_seconds": 0,
+            "period_days": 30
+        }
+    
+    # Count total runs
+    total_runs = db.query(func.count(Run.id)).filter(
+        Run.project_id.in_(user_project_ids),
+        Run.created_at >= thirty_days_ago
+    ).scalar() or 0
+    
+    # Count completed runs
+    completed_runs = db.query(func.count(Run.id)).filter(
+        Run.project_id.in_(user_project_ids),
+        Run.created_at >= thirty_days_ago,
+        Run.status == "completed"
+    ).scalar() or 0
+    
+    # Sum total requests
+    total_requests = db.query(func.sum(Run.actual_requests)).filter(
+        Run.project_id.in_(user_project_ids),
+        Run.created_at >= thirty_days_ago,
+        Run.status == "completed"
+    ).scalar() or 0
+    
+    # Calculate total test duration (in seconds)
+    total_duration = db.query(func.sum(
+        func.extract('epoch', Run.finished_at - Run.started_at)
+    )).filter(
+        Run.project_id.in_(user_project_ids),
+        Run.created_at >= thirty_days_ago,
+        Run.status == "completed",
+        Run.started_at.isnot(None),
+        Run.finished_at.isnot(None)
+    ).scalar() or 0
+    
+    return {
+        "total_runs": total_runs,
+        "completed_runs": completed_runs,
+        "total_requests": int(total_requests),
+        "total_duration_seconds": int(total_duration),
+        "period_days": 30
+    }
+
+
+@router.get("/with-stats")
+def list_projects_with_stats(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """List all projects with statistics for dashboard."""
+    projects = db.query(Project).filter(Project.user_id == current_user.id).all()
+    
+    result = []
+    for project in projects:
+        # Count total runs for this project
+        total_runs = db.query(func.count(Run.id)).filter(
+            Run.project_id == project.id
+        ).scalar() or 0
+        
+        # Get latest suite info
+        latest_suite = None
+        if project.last_suite_id:
+            # Get all runs for this suite
+            all_runs = db.query(Run).filter(Run.project_id == project.id).all()
+            suite_runs = [r for r in all_runs if r.config.get("suite_id") == project.last_suite_id]
+            
+            if suite_runs:
+                # Sort by created_at descending and get the latest
+                suite_runs.sort(key=lambda x: x.created_at, reverse=True)
+                latest_run = suite_runs[0]
+                latest_suite = {
+                    "suite_id": project.last_suite_id,
+                    "status": latest_run.status,
+                    "created_at": latest_run.created_at.isoformat() if latest_run.created_at else None,
+                    "commit_message": latest_run.config.get("commit_message", "Latest test run")
+                }
+        
+        # Get latest run (any type)
+        latest_run = db.query(Run).filter(
+            Run.project_id == project.id
+        ).order_by(Run.created_at.desc()).first()
+        
+        result.append({
+            "id": project.id,
+            "name": project.name,
+            "description": project.description,
+            "base_url": project.base_url,
+            "last_suite_id": project.last_suite_id,
+            "created_at": project.created_at.isoformat(),
+            "updated_at": project.updated_at.isoformat(),
+            "total_runs": total_runs,
+            "latest_suite": latest_suite,
+            "latest_run_at": latest_run.created_at.isoformat() if latest_run else None
+        })
+    
+    return result
 
 
 @router.get("/{project_id}", response_model=ProjectResponse)

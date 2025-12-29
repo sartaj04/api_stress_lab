@@ -95,6 +95,12 @@ export default function PricingPage() {
             </header>
 
             <div className="max-w-4xl mx-auto px-6 py-16">
+                <Link href="/" className="inline-flex items-center gap-2 text-white/60 hover:text-white text-sm mb-8 transition">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back to Home
+                </Link>
                 {/* Hero */}
                 <div className="text-center mb-12">
                     <h1 className="text-4xl font-bold text-white mb-4">Pay As You Go</h1>
