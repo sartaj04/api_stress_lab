@@ -268,7 +268,7 @@ export default function DashboardPage() {
                     <div className="flex-1 flex justify-end">
                         <Link href="/projects/new" className="btn-primary text-sm whitespace-nowrap flex-shrink-0">
                             Add New...
-                        </Link>
+                    </Link>
                     </div>
                 </div>
 
@@ -351,7 +351,7 @@ export default function DashboardPage() {
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                     </svg>
-                                    <span>Joined waitlist - We'll let you know when available</span>
+                                    <span>Joined waitlist - We&apos;ll let you know when available</span>
                                 </div>
                             ) : (
                                 <button 
@@ -366,7 +366,7 @@ export default function DashboardPage() {
 
                         {/* OpenAPI Spec Generation */}
                         <div className="card p-6 bg-white/5">
-                            <h2 className="text-lg font-semibold text-white mb-2">Don't have an OpenAPI spec?</h2>
+                            <h2 className="text-lg font-semibold text-white mb-2">Don&apos;t have an OpenAPI spec?</h2>
                             <p className="text-white/40 text-sm mb-4">
                                 Generate one using simple steps for your framework.
                             </p>
@@ -393,7 +393,7 @@ export default function DashboardPage() {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                                     </svg>
                                     <span>Documentation</span>
-                                </Link>
+                        </Link>
                                 <a 
                                     href="mailto:contact@apistresslab.com?subject=Support Request"
                                     className="flex items-center gap-2 text-white/60 hover:text-white text-sm transition group"
@@ -481,7 +481,7 @@ export default function DashboardPage() {
                                         </div>
                                     </Link>
                                 ))}
-                            </div>
+                    </div>
                 ) : (
                     <div className="space-y-3">
                                 {filteredProjects.map((project) => (
