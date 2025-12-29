@@ -17,10 +17,10 @@ class Settings(BaseSettings):
     s3_secure: bool = True
     
     # Security
-    jwt_secret: str = "super-secret-jwt-key-change-in-production"
+    jwt_secret: str = "none"
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 60 * 24 * 7  # 7 days
-    encryption_key: str = "32-byte-encryption-key-here!!!"
+    encryption_key: str = "none"
     
     # CORS
     cors_origins: str = "http://localhost:3000"
@@ -32,6 +32,10 @@ class Settings(BaseSettings):
     # Stripe
     stripe_secret_key: Optional[str] = None
     stripe_webhook_secret: Optional[str] = None
+    
+    # Google OAuth
+    google_client_id: Optional[str] = None
+    google_client_secret: Optional[str] = None
     
     # App URLs
     frontend_url: str = "http://localhost:3000"

@@ -3,13 +3,16 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
-import { runs, Run, RunReport as RunReportType } from '@/lib/api';
+import { runs, Run, RunReport as RunReportType, CapacityInsights, EndpointBreakdown } from '@/lib/api';
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-    BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area
+    BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area, ComposedChart
 } from 'recharts';
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+
+// Demo mode detection (user not logged in or viewing demo results)
+const isDemoMode = (user: any) => !user;
 
 export default function RunDetailPage({ params }: { params: { id: string } }) {
     const { user } = useAuth();
@@ -87,6 +90,37 @@ export default function RunDetailPage({ params }: { params: { id: string } }) {
         return `${ms.toFixed(0)}ms`;
     };
 
+    const getThresholdIcon = (status: string) => {
+        switch (status) {
+            case 'healthy':
+                return (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-emerald-400">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                        <polyline points="22 4 12 14.01 9 11.01" />
+                    </svg>
+                );
+            case 'warning':
+                return (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-amber-400">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                        <line x1="12" y1="9" x2="12" y2="13" />
+                        <line x1="12" y1="17" x2="12.01" y2="17" />
+                    </svg>
+                );
+            case 'error':
+            case 'critical':
+                return (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-red-400">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="15" y1="9" x2="9" y2="15" />
+                        <line x1="9" y1="9" x2="15" y2="15" />
+                    </svg>
+                );
+            default:
+                return null;
+        }
+    };
+
     // Prepare chart data
     const statusCodeData = report ? Object.entries(report.status_code_distribution).map(([code, count]) => ({
         name: code,
@@ -98,6 +132,9 @@ export default function RunDetailPage({ params }: { params: { id: string } }) {
         p95: e.p95,
         errorRate: e.error_rate * 100
     })) || [];
+
+    // Concurrency vs Performance chart data
+    const concurrencyData = report?.capacity_insights?.concurrency_data || [];
 
     return (
         <main className="min-h-screen" style={{ background: '#111113' }}>
@@ -151,6 +188,160 @@ export default function RunDetailPage({ params }: { params: { id: string } }) {
                 {/* Report for completed runs */}
                 {report && (
                     <>
+                        {/* PRIMARY INSIGHT CARD: System Capacity & Breaking Point */}
+                        {report.capacity_insights && (
+                            <div className="mb-6">
+                                <div className="bg-gradient-to-br from-white/[0.04] to-white/[0.02] border border-white/[0.1] rounded-2xl overflow-hidden">
+                                    {/* Header */}
+                                    <div className="px-6 py-5 border-b border-white/[0.06] flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/20 to-blue-500/20 flex items-center justify-center">
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-emerald-400">
+                                                    <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                                                    <path d="M2 17l10 5 10-5" />
+                                                    <path d="M2 12l10 5 10-5" />
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <h2 className="text-lg font-semibold text-white">System Capacity & Breaking Point</h2>
+                                                <p className="text-xs text-white/40">How much load can your system handle?</p>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="text-3xl font-bold text-emerald-400">
+                                                {report.capacity_insights.max_stable_users}
+                                            </div>
+                                            <div className="text-xs text-white/40">concurrent users</div>
+                                        </div>
+                                    </div>
+
+                                    {/* Plain-English Summary */}
+                                    <div className="px-6 py-5 bg-white/[0.02] border-b border-white/[0.06]">
+                                        <p className="text-white/80 leading-relaxed">
+                                            {report.capacity_insights.summary}
+                                        </p>
+                                    </div>
+
+                                    {/* Threshold Indicators */}
+                                    <div className="grid grid-cols-2 md:grid-cols-4">
+                                        {Object.entries(report.capacity_insights.thresholds).map(([key, threshold]) => (
+                                            <div key={key} className="px-5 py-4 border-r border-b border-white/[0.06] last:border-r-0">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    {getThresholdIcon(threshold.status)}
+                                                    <span className="text-xs font-medium text-white/60 uppercase tracking-wider">
+                                                        {key}
+                                                    </span>
+                                                </div>
+                                                <div className="text-lg font-semibold text-white mb-1">
+                                                    {threshold.users !== null ? `${threshold.users} users` : '—'}
+                                                </div>
+                                                <p className="text-xs text-white/40 line-clamp-2">
+                                                    {threshold.label}
+                                                </p>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* First to Break Endpoint */}
+                                    {report.capacity_insights.endpoint_analysis.first_to_break && (
+                                        <div className="px-6 py-4 bg-red-500/[0.03] border-t border-red-500/10">
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-red-400">
+                                                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                                                            <line x1="12" y1="9" x2="12" y2="13" />
+                                                            <line x1="12" y1="17" x2="12.01" y2="17" />
+                                                        </svg>
+                                                        <span className="text-xs font-medium text-red-400/80">FIRST TO BREAK</span>
+                                                    </div>
+                                                    <div className="font-mono text-white">
+                                                        {report.capacity_insights.endpoint_analysis.first_to_break.endpoint}
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <div className="text-amber-400 text-sm">
+                                                        P95: {formatLatency(report.capacity_insights.endpoint_analysis.first_to_break.p95)}
+                                                    </div>
+                                                    <div className="text-red-400 text-sm">
+                                                        {(report.capacity_insights.endpoint_analysis.first_to_break.error_rate * 100).toFixed(2)}% errors
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Concurrency Charts - 2 columns */}
+                        {concurrencyData.length > 0 && (
+                            <div className="grid md:grid-cols-2 gap-4 mb-6">
+                                {/* Concurrent Users vs Response Time */}
+                                <div className="card p-5">
+                                    <h3 className="text-sm font-medium text-white mb-1">Concurrent Users vs Response Time</h3>
+                                    <p className="text-xs text-white/40 mb-4">How latency changes as load increases</p>
+                                    <ResponsiveContainer width="100%" height={240}>
+                                        <ComposedChart data={concurrencyData}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                                            <XAxis 
+                                                dataKey="estimated_vus" 
+                                                stroke="rgba(255,255,255,0.3)" 
+                                                fontSize={11}
+                                                label={{ value: 'Concurrent Users', position: 'bottom', offset: -5, fontSize: 10, fill: 'rgba(255,255,255,0.4)' }}
+                                            />
+                                            <YAxis 
+                                                stroke="rgba(255,255,255,0.3)" 
+                                                fontSize={11}
+                                                label={{ value: 'Latency (ms)', angle: -90, position: 'insideLeft', fontSize: 10, fill: 'rgba(255,255,255,0.4)' }}
+                                            />
+                                            <Tooltip
+                                                contentStyle={{ backgroundColor: '#1a1a1c', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                                                labelStyle={{ color: '#fff' }}
+                                                formatter={(value: number, name: string) => [
+                                                    `${value.toFixed(0)}ms`,
+                                                    name === 'p50' ? 'Median' : 'P95'
+                                                ]}
+                                                labelFormatter={(value) => `${value} users`}
+                                            />
+                                            <Legend />
+                                            <Area type="monotone" dataKey="p95" fill="#f59e0b" fillOpacity={0.1} stroke="#f59e0b" strokeWidth={2} name="P95" />
+                                            <Line type="monotone" dataKey="p50" stroke="#10b981" strokeWidth={2} dot={false} name="Median" />
+                                        </ComposedChart>
+                                    </ResponsiveContainer>
+                                </div>
+
+                                {/* Concurrent Users vs Error Rate */}
+                                <div className="card p-5">
+                                    <h3 className="text-sm font-medium text-white mb-1">Concurrent Users vs Error Rate</h3>
+                                    <p className="text-xs text-white/40 mb-4">When failures start appearing</p>
+                                    <ResponsiveContainer width="100%" height={240}>
+                                        <AreaChart data={concurrencyData}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                                            <XAxis 
+                                                dataKey="estimated_vus" 
+                                                stroke="rgba(255,255,255,0.3)" 
+                                                fontSize={11}
+                                                label={{ value: 'Concurrent Users', position: 'bottom', offset: -5, fontSize: 10, fill: 'rgba(255,255,255,0.4)' }}
+                                            />
+                                            <YAxis 
+                                                stroke="rgba(255,255,255,0.3)" 
+                                                fontSize={11} 
+                                                tickFormatter={(v) => `${(v * 100).toFixed(0)}%`}
+                                                label={{ value: 'Error Rate', angle: -90, position: 'insideLeft', fontSize: 10, fill: 'rgba(255,255,255,0.4)' }}
+                                            />
+                                            <Tooltip
+                                                contentStyle={{ backgroundColor: '#1a1a1c', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                                                formatter={(value: number) => [`${(value * 100).toFixed(2)}%`, 'Error Rate']}
+                                                labelFormatter={(value) => `${value} users`}
+                                            />
+                                            <Area type="monotone" dataKey="error_rate" stroke="#ef4444" fill="#ef4444" fillOpacity={0.2} name="Error Rate" />
+                                        </AreaChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Summary Stats */}
                         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
                             {[
@@ -166,6 +357,94 @@ export default function RunDetailPage({ params }: { params: { id: string } }) {
                                 </div>
                             ))}
                         </div>
+
+                        {/* API-Level Breakdown Card */}
+                        {report.capacity_insights?.endpoint_analysis && (
+                            <div className="card p-5 mb-6">
+                                <div className="flex items-center justify-between mb-5">
+                                    <div>
+                                        <h3 className="text-sm font-medium text-white">API Endpoint Breakdown</h3>
+                                        <p className="text-xs text-white/40 mt-0.5">Performance ranking by latency and error rate</p>
+                                    </div>
+                                </div>
+
+                                <div className="grid md:grid-cols-2 gap-6">
+                                    {/* Slowest Endpoints */}
+                                    <div>
+                                        <h4 className="text-xs font-medium text-amber-400/80 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <circle cx="12" cy="12" r="10" />
+                                                <polyline points="12 6 12 12 16 14" />
+                                            </svg>
+                                            Slowest by P95 Latency
+                                        </h4>
+                                        <div className="space-y-2">
+                                            {report.capacity_insights.endpoint_analysis.rankings_by_latency.map((ep, i) => (
+                                                <div key={i} className="flex items-center gap-3 p-3 bg-white/[0.02] rounded-lg">
+                                                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                                                        i === 0 ? 'bg-amber-500/20 text-amber-400' :
+                                                        i === 1 ? 'bg-white/10 text-white/60' :
+                                                        'bg-white/5 text-white/40'
+                                                    }`}>
+                                                        {ep.rank}
+                                                    </span>
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="font-mono text-sm text-white truncate">{ep.endpoint}</div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="text-amber-400 font-mono text-sm">{formatLatency(ep.p95 || 0)}</div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            {report.capacity_insights.endpoint_analysis.rankings_by_latency.length === 0 && (
+                                                <p className="text-white/30 text-sm">No endpoint data available</p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Highest Error Rate */}
+                                    <div>
+                                        <h4 className="text-xs font-medium text-red-400/80 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <circle cx="12" cy="12" r="10" />
+                                                <line x1="15" y1="9" x2="9" y2="15" />
+                                                <line x1="9" y1="9" x2="15" y2="15" />
+                                            </svg>
+                                            Highest Error Rate
+                                        </h4>
+                                        <div className="space-y-2">
+                                            {report.capacity_insights.endpoint_analysis.rankings_by_errors.length > 0 ? (
+                                                report.capacity_insights.endpoint_analysis.rankings_by_errors.map((ep, i) => (
+                                                    <div key={i} className="flex items-center gap-3 p-3 bg-white/[0.02] rounded-lg">
+                                                        <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                                                            i === 0 ? 'bg-red-500/20 text-red-400' :
+                                                            i === 1 ? 'bg-white/10 text-white/60' :
+                                                            'bg-white/5 text-white/40'
+                                                        }`}>
+                                                            {ep.rank}
+                                                        </span>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="font-mono text-sm text-white truncate">{ep.endpoint}</div>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <div className="text-red-400 font-mono text-sm">{((ep.error_rate || 0) * 100).toFixed(2)}%</div>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="flex items-center gap-3 p-3 bg-emerald-500/5 rounded-lg border border-emerald-500/10">
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-emerald-400">
+                                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                                                        <polyline points="22 4 12 14.01 9 11.01" />
+                                                    </svg>
+                                                    <span className="text-emerald-400 text-sm">All endpoints returned successfully</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         {/* Charts Row 1 */}
                         <div className="grid md:grid-cols-2 gap-4 mb-4">

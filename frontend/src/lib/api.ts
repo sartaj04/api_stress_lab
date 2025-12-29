@@ -75,6 +75,19 @@ export const auth = {
 
     me: () => request<User>('/auth/me'),
 
+    // Google OAuth
+    googleAuth: (code: string, redirectUri: string) =>
+        request<{ access_token: string }>('/auth/google', {
+            method: 'POST',
+            body: { code, redirect_uri: redirectUri },
+        }),
+
+    googleTokenAuth: (idToken: string) =>
+        request<{ access_token: string }>('/auth/google/token', {
+            method: 'POST',
+            body: { id_token: idToken },
+        }),
+
     createApiKey: (name: string) =>
         request<ApiKey>('/auth/api-keys', {
             method: 'POST',
@@ -202,6 +215,9 @@ export interface User {
     credit_balance: number;
     free_credits_claimed: boolean;
     last_opened_project_id?: number;
+    auth_provider: 'email' | 'google';
+    full_name?: string;
+    avatar_url?: string;
     created_at: string;
 }
 
@@ -334,6 +350,7 @@ export interface RunReport {
     status_code_distribution: Record<string, number>;
     bottleneck_hints: BottleneckHint[];
     ai_analysis?: AIAnalysis;
+    capacity_insights?: CapacityInsights;
 }
 
 // AI Analysis Types
@@ -387,6 +404,68 @@ export interface AIAnalysis {
     headroom: Headroom;
     fix_priorities: FixPriority[];
     performance_grade: PerformanceGrade;
+}
+
+// Capacity Insights Types
+export interface EndpointRanking {
+    rank: number;
+    endpoint: string;
+    p95?: number;
+    avg_latency?: number;
+    error_rate?: number;
+}
+
+export interface EndpointBreakdown {
+    endpoint: string;
+    method: string;
+    path: string;
+    score: number;
+    p95: number;
+    avg_latency: number;
+    error_rate: number;
+    count: number;
+}
+
+export interface EndpointAnalysis {
+    first_to_break?: EndpointBreakdown;
+    slowest?: Record<string, any>;
+    highest_error_rate?: Record<string, any>;
+    rankings_by_latency: EndpointRanking[];
+    rankings_by_errors: EndpointRanking[];
+}
+
+export interface CapacityThreshold {
+    users?: number;
+    label: string;
+    status: 'healthy' | 'warning' | 'error' | 'critical';
+}
+
+export interface CapacityThresholds {
+    stable: CapacityThreshold;
+    degraded: CapacityThreshold;
+    unstable: CapacityThreshold;
+    broken: CapacityThreshold;
+}
+
+export interface ConcurrencyDataPoint {
+    time_bucket: number;
+    estimated_vus: number;
+    p95: number;
+    p50: number;
+    error_rate: number;
+    rps: number;
+}
+
+export interface CapacityInsights {
+    tested_vus: number;
+    max_stable_users: number;
+    latency_inflection_users?: number;
+    error_onset_users?: number;
+    breaking_point_users?: number;
+    summary: string;
+    endpoint_analysis: EndpointAnalysis;
+    thresholds: CapacityThresholds;
+    concurrency_data: ConcurrencyDataPoint[];
 }
 
 // Smart Scenario Types
@@ -508,3 +587,50 @@ export interface CreditEstimate {
         minimum_credits: number;
     };
 }
+
+// Demo Types
+export interface DemoConfig {
+    endpoint: string;
+    rps: number;
+    duration: number;
+}
+
+export interface DemoMetrics {
+    total_requests: number;
+    successful: number;
+    failed: number;
+    success_rate: number;
+    avg_latency: number;
+    p50: number;
+    p95: number;
+    p99: number;
+    max_rps: number;
+    error_rate: number;
+    timeseries: { time: number; rps: number; latency: number; errors: number }[];
+}
+
+export interface DemoResponse {
+    status: string;
+    message: string;
+    metrics?: DemoMetrics;
+}
+
+export interface DemoLimits {
+    max_rps: number;
+    max_duration: number;
+    max_requests: number;
+    cooldown_minutes: number;
+    max_per_hour: number;
+    default_endpoint: string;
+}
+
+// Demo API (no auth required)
+export const demo = {
+    run: (config: DemoConfig) =>
+        request<DemoResponse>('/demo/run', {
+            method: 'POST',
+            body: config,
+        }),
+
+    getLimits: () => request<DemoLimits>('/demo/limits'),
+};

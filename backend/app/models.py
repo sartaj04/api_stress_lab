@@ -10,7 +10,15 @@ class User(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String(255), unique=True, nullable=False, index=True)
-    hashed_password = Column(String(255), nullable=False)
+    hashed_password = Column(String(255), nullable=True)  # Nullable for OAuth users
+    
+    # OAuth fields
+    google_id = Column(String(255), unique=True, nullable=True, index=True)
+    auth_provider = Column(String(50), nullable=False, default="email")  # email, google
+    
+    # Profile from OAuth
+    full_name = Column(String(255), nullable=True)
+    avatar_url = Column(String(2048), nullable=True)
     
     # Credit-based billing
     credit_balance = Column(Integer, nullable=False, default=0)

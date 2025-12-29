@@ -20,6 +20,9 @@ class UserResponse(BaseModel):
     credit_balance: int
     free_credits_claimed: bool
     last_opened_project_id: Optional[int] = None
+    auth_provider: str = "email"
+    full_name: Optional[str] = None
+    avatar_url: Optional[str] = None
     created_at: datetime
     
     class Config:
@@ -245,6 +248,68 @@ class PerformanceGrade(BaseModel):
     throughput: str
 
 
+# Capacity Insights schemas
+class EndpointRanking(BaseModel):
+    rank: int
+    endpoint: str
+    p95: Optional[float] = None
+    avg_latency: Optional[float] = None
+    error_rate: Optional[float] = None
+
+
+class EndpointBreakdown(BaseModel):
+    endpoint: str
+    method: str
+    path: str
+    score: float
+    p95: float
+    avg_latency: float
+    error_rate: float
+    count: int
+
+
+class EndpointAnalysis(BaseModel):
+    first_to_break: Optional[EndpointBreakdown] = None
+    slowest: Optional[Dict[str, Any]] = None
+    highest_error_rate: Optional[Dict[str, Any]] = None
+    rankings_by_latency: List[EndpointRanking] = []
+    rankings_by_errors: List[EndpointRanking] = []
+
+
+class CapacityThreshold(BaseModel):
+    users: Optional[int] = None
+    label: str
+    status: str  # healthy, warning, error, critical
+
+
+class CapacityThresholds(BaseModel):
+    stable: CapacityThreshold
+    degraded: CapacityThreshold
+    unstable: CapacityThreshold
+    broken: CapacityThreshold
+
+
+class ConcurrencyDataPoint(BaseModel):
+    time_bucket: int
+    estimated_vus: int
+    p95: float
+    p50: float
+    error_rate: float
+    rps: float
+
+
+class CapacityInsights(BaseModel):
+    tested_vus: int
+    max_stable_users: int
+    latency_inflection_users: Optional[int] = None
+    error_onset_users: Optional[int] = None
+    breaking_point_users: Optional[int] = None
+    summary: str
+    endpoint_analysis: EndpointAnalysis
+    thresholds: CapacityThresholds
+    concurrency_data: List[ConcurrencyDataPoint]
+
+
 class AIAnalysis(BaseModel):
     ai_generated: bool = False
     executive_summary: str
@@ -274,6 +339,7 @@ class RunReport(BaseModel):
     status_code_distribution: Dict[str, int]
     bottleneck_hints: List[BottleneckHint]
     ai_analysis: Optional[AIAnalysis] = None
+    capacity_insights: Optional[CapacityInsights] = None
 
 
 # Smart Scenario schemas

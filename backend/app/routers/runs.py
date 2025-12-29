@@ -4,7 +4,7 @@ from typing import List
 
 from ..database import get_db
 from ..models import User, Project, Scenario, Run, RunMetricsTimeseries, RunEndpointMetrics
-from ..schemas import RunCreate, RunResponse, RunReport, TimeseriesPoint, EndpointMetrics, BottleneckHint, AIAnalysis
+from ..schemas import RunCreate, RunResponse, RunReport, TimeseriesPoint, EndpointMetrics, BottleneckHint, AIAnalysis, CapacityInsights
 from ..auth import get_current_user, check_user_credits, get_default_limits
 from ..tasks import run_load_test
 from ..report_analyzer import analyze_results
@@ -233,6 +233,14 @@ def get_run_report(
         print(f"Failed to parse AI analysis: {e}")
         ai_analysis = None
     
+    # Parse capacity insights
+    capacity_insights = None
+    if analysis.get("capacity_insights"):
+        try:
+            capacity_insights = CapacityInsights(**analysis["capacity_insights"])
+        except Exception as e:
+            print(f"Failed to parse capacity insights: {e}")
+    
     return RunReport(
         run_id=run.id,
         status=run.status,
@@ -250,7 +258,8 @@ def get_run_report(
         endpoint_metrics=endpoint_metrics,
         status_code_distribution=status_codes,
         bottleneck_hints=hints,
-        ai_analysis=ai_analysis
+        ai_analysis=ai_analysis,
+        capacity_insights=capacity_insights
     )
 
 

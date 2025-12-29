@@ -1,11 +1,14 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import Logo from '@/components/Logo';
+import DemoTest from '@/components/DemoTest';
 
 export default function Home() {
     const { user } = useAuth();
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     return (
         <main className="min-h-screen" style={{ background: '#111113' }}>
@@ -15,7 +18,12 @@ export default function Home() {
                     <Link href="/">
                         <Logo size="md" />
                     </Link>
-                    <div className="flex items-center gap-6">
+                    
+                    {/* Desktop Navigation */}
+                    <div className="hidden md:flex items-center gap-6">
+                        <Link href="#demo" className="text-emerald-400/80 hover:text-emerald-400 text-sm transition font-medium">
+                            Try Demo
+                        </Link>
                         <Link href="#features" className="text-white/60 hover:text-white text-sm transition">
                             Features
                         </Link>
@@ -37,28 +45,98 @@ export default function Home() {
                             </>
                         )}
                     </div>
+
+                    {/* Mobile Menu Button */}
+                    <button 
+                        className="md:hidden p-2 text-white/60 hover:text-white transition"
+                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                        aria-label="Toggle menu"
+                    >
+                        {mobileMenuOpen ? (
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M18 6L6 18M6 6l12 12" />
+                            </svg>
+                        ) : (
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        )}
+                    </button>
                 </div>
+
+                {/* Mobile Menu */}
+                {mobileMenuOpen && (
+                    <div className="md:hidden border-t border-white/[0.06]" style={{ background: 'rgba(10, 10, 11, 0.98)' }}>
+                        <div className="px-6 py-4 space-y-4">
+                            <Link 
+                                href="#demo" 
+                                className="block text-emerald-400/80 hover:text-emerald-400 text-sm font-medium transition py-2"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                Try Demo
+                            </Link>
+                            <Link 
+                                href="#features" 
+                                className="block text-white/60 hover:text-white text-sm transition py-2"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                Features
+                            </Link>
+                            <Link 
+                                href="/pricing" 
+                                className="block text-white/60 hover:text-white text-sm transition py-2"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                Pricing
+                            </Link>
+                            {user ? (
+                                <Link 
+                                    href="/dashboard" 
+                                    className="block btn-primary text-sm text-center"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    Dashboard
+                                </Link>
+                            ) : (
+                                <>
+                                    <Link 
+                                        href="/login" 
+                                        className="block text-white/60 hover:text-white text-sm transition py-2"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                    >
+                                        Login
+                                    </Link>
+                                    <Link 
+                                        href="/signup" 
+                                        className="block btn-primary text-sm text-center"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                    >
+                                        Get Started
+                                    </Link>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                )}
             </nav>
 
             {/* Hero - Clean and minimal */}
-            <section className="pt-32 pb-20 px-6">
+            <section className="pt-32 pb-12 px-6">
                 <div className="max-w-3xl mx-auto text-center">
                     <h1 className="text-5xl md:text-6xl font-semibold text-white mb-6" style={{ letterSpacing: '-0.03em', lineHeight: '1.1' }}>
                         Stress test your APIs with confidence
                     </h1>
-                    <p className="text-lg text-white/50 mb-10 max-w-xl mx-auto">
+                    <p className="text-lg text-white/50 mb-8 max-w-xl mx-auto">
                         Upload your OpenAPI spec. We generate load tests, run them, and give you AI-powered insights. Simple.
                     </p>
-                    <div className="flex gap-4 justify-center">
-                        <Link href="/signup" className="btn-primary">
-                            Start for free
-                        </Link>
-                        <Link href="#features" className="btn-secondary">
-                            Learn more
-                        </Link>
-                    </div>
+                    <p className="text-sm text-emerald-400/80 mb-4">
+                        ↓ Try it now — no signup required
+                    </p>
                 </div>
             </section>
+
+            {/* Interactive Demo Test */}
+            <DemoTest />
 
             {/* Divider */}
             <div className="divider" />
