@@ -239,27 +239,40 @@ def run_load_test(self, run_id: int):
 
                     logger.info(f"Suite completed. Triggering email via API to {user.email} with URL: {suite_url}")
 
-                    # Call Render API endpoint to send email (works from Railway worker)
-                    try:
-                        response = httpx.post(
-                            f"{settings.backend_url}/internal/send-suite-completion-email",
-                            json={
-                                "email": user.email,
-                                "project_name": project.name,
-                                "suite_id": suite_id,
-                                "suite_url": suite_url,
-                                "completed_tests": completed_count,
-                                "total_tests": total_count
-                            },
-                            timeout=90.0  
-                        )
-                        response.raise_for_status()
-                        logger.info(f"Email API call successful for {user.email}")
-                    except Exception as e:
-                        # Log error but don't fail the task
-                        import logging
-                        logger = logging.getLogger(__name__)
-                        logger.error(f"Failed to send suite completion email: {str(e)}")
+                    # Check if backend_url is configured
+                    if not settings.backend_url:
+                        logger.error("BACKEND_URL not configured - cannot send email notification. Set BACKEND_URL env var.")
+                    else:
+                        # Call Render API endpoint to send email (works from Railway worker)
+                        # Try with retries in case Render is sleeping
+                        import time
+                        max_retries = 2
+                        email_url = f"{settings.backend_url}/internal/send-suite-completion-email"
+                        logger.info(f"Calling email API: {email_url}")
+
+                        for attempt in range(max_retries):
+                            try:
+                                response = httpx.post(
+                                    email_url,
+                                    json={
+                                        "email": user.email,
+                                        "project_name": project.name,
+                                        "suite_id": suite_id,
+                                        "suite_url": suite_url,
+                                        "completed_tests": completed_count,
+                                        "total_tests": total_count
+                                    },
+                                    timeout=120.0  # 2 minutes - very generous for Render free tier
+                                )
+                                response.raise_for_status()
+                                logger.info(f"Email API call successful for {user.email}")
+                                break  # Success, exit retry loop
+                            except Exception as e:
+                                if attempt < max_retries - 1:
+                                    logger.warning(f"Email attempt {attempt + 1} failed, retrying in 10s: {str(e)}")
+                                    time.sleep(10)  # Wait before retry
+                                else:
+                                    logger.error(f"Failed to send suite completion email after {max_retries} attempts: {str(e)}")
         
         return {"status": "completed", "run_id": run_id}
         
@@ -299,24 +312,40 @@ def run_load_test(self, run_id: int):
 
                         logger.info(f"Suite completed (failed run). Triggering email via API to {user.email} with URL: {suite_url}")
 
-                        # Call Render API endpoint to send email (works from Railway worker)
-                        try:
-                            response = httpx.post(
-                                f"{settings.backend_url}/internal/send-suite-completion-email",
-                                json={
-                                    "email": user.email,
-                                    "project_name": project.name,
-                                    "suite_id": suite_id,
-                                    "suite_url": suite_url,
-                                    "completed_tests": completed_count,
-                                    "total_tests": total_count
-                                },
-                                timeout=90.0  
-                            )
-                            response.raise_for_status()
-                            logger.info(f"Email API call successful for {user.email}")
-                        except Exception as email_error:
-                            logger.error(f"Failed to send suite completion email: {str(email_error)}")
+                        # Check if backend_url is configured
+                        if not settings.backend_url:
+                            logger.error("BACKEND_URL not configured - cannot send email notification. Set BACKEND_URL env var.")
+                        else:
+                            # Call Render API endpoint to send email (works from Railway worker)
+                            # Try with retries in case Render is sleeping
+                            import time
+                            max_retries = 2
+                            email_url = f"{settings.backend_url}/internal/send-suite-completion-email"
+                            logger.info(f"Calling email API: {email_url}")
+
+                            for attempt in range(max_retries):
+                                try:
+                                    response = httpx.post(
+                                        email_url,
+                                        json={
+                                            "email": user.email,
+                                            "project_name": project.name,
+                                            "suite_id": suite_id,
+                                            "suite_url": suite_url,
+                                            "completed_tests": completed_count,
+                                            "total_tests": total_count
+                                        },
+                                        timeout=120.0  # 2 minutes - very generous for Render free tier
+                                    )
+                                    response.raise_for_status()
+                                    logger.info(f"Email API call successful for {user.email}")
+                                    break  # Success, exit retry loop
+                                except Exception as email_error:
+                                    if attempt < max_retries - 1:
+                                        logger.warning(f"Email attempt {attempt + 1} failed, retrying in 10s: {str(email_error)}")
+                                        time.sleep(10)  # Wait before retry
+                                    else:
+                                        logger.error(f"Failed to send suite completion email after {max_retries} attempts: {str(email_error)}")
         
         raise
     

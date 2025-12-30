@@ -150,7 +150,7 @@ def send_suite_completion_email(email: str, project_name: str, suite_id: str, su
                         <span style="color: #333; font-weight: 600; font-size: 18px;">{completed_tests} / {total_tests}</span>
                     </div>
                     <div style="width: 100%; height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden;">
-                        <div style="width: {(completed_tests / total_tests) * 100}%; height: 100%; background: #10b981; transition: width 0.3s;"></div>
+                        <div style="width: {(completed_tests / total_tests * 100) if total_tests > 0 else 0}%; height: 100%; background: #10b981; transition: width 0.3s;"></div>
                     </div>
                 </div>
                 
