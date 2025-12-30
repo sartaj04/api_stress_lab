@@ -148,7 +148,7 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
         try {
             const result = await runs.runSuite(projectId, suite.scenario_id);
             setToast({
-                message: 'Tests are running! Sit back and relax - we\'ll notify you via email when your test suite is complete.',
+                message: 'Tests queued! We\'ll notify you via email when complete.',
                 type: 'success'
             });
             setTimeout(() => setToast(null), 5000);
@@ -368,6 +368,21 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
                                                     <span className="text-white font-medium text-sm">Test Suite Running</span>
                                                 </div>
                                                 <span className="text-white/40 text-xs">{suite.completed_tests} of {suite.total_tests} completed</span>
+                                            </div>
+
+                                            {/* Tests queued notice */}
+                                            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mb-4">
+                                                <div className="flex items-start gap-3">
+                                                    <svg className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    <div>
+                                                        <p className="text-blue-400 font-medium text-sm mb-1">Tests queued</p>
+                                                        <p className="text-white/60 text-sm">
+                                                            Your tests have been queued and will begin processing shortly. During high demand, there may be a brief delay.
+                                                        </p>
+                                                    </div>
+                                                </div>
                                             </div>
 
                                             {/* Sit back and relax message */}
