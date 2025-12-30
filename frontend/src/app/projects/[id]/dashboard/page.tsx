@@ -202,10 +202,10 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
                         </div>
                     </div>
 
-                    {/* Friendly message */}
+                    {/* Loading message */}
                     <div className="text-center mb-8">
-                        <h2 className="text-xl font-medium text-white mb-2">Sit back and relax</h2>
-                        <p className="text-white/60 text-sm">We&apos;re loading your test results and will notify you via email when complete.</p>
+                        <h2 className="text-xl font-medium text-white mb-2">Loading Results</h2>
+                        <p className="text-white/60 text-sm">Please wait while we load your test results...</p>
                     </div>
 
                     {/* Loading steps */}
@@ -326,6 +326,9 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
                             )}
                         </div>
                         <div className="flex items-center gap-4">
+                            <Link href={`/projects/${projectId}`} className="text-white/60 hover:text-white text-sm transition">
+                                Configuration
+                            </Link>
                             <Link href="/pricing" className="text-white/60 hover:text-white text-sm transition">
                                 {balance ? `${balance.balance} credits` : 'Buy Credits'}
                             </Link>
@@ -366,7 +369,22 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
                                                 </div>
                                                 <span className="text-white/40 text-xs">{suite.completed_tests} of {suite.total_tests} completed</span>
                                             </div>
-                                            
+
+                                            {/* Sit back and relax message */}
+                                            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4 mb-4">
+                                                <div className="flex items-start gap-3">
+                                                    <svg className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    <div>
+                                                        <p className="text-emerald-400 font-medium text-sm mb-1">Sit back and relax</p>
+                                                        <p className="text-white/60 text-sm">
+                                                            More endpoints and complex endpoints take more time to test. Feel free to grab a coffee or work on other things — we&apos;ll notify you via email when your test suite is complete.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
                                             {/* Test Status List */}
                                             <div className="space-y-2">
                                                 {suite.results.map((result, index) => {

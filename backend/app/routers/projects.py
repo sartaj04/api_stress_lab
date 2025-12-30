@@ -14,7 +14,7 @@ from ..schemas import (
 from ..auth import get_current_user
 from ..crypto import encrypt_secret
 from ..security import validate_base_url
-from ..storage import upload_file
+from ..storage import upload_file, delete_file
 from ..openapi_parser import parse_openapi_spec, generate_scenario_from_spec, compute_content_hash
 from ..llm_scenarios import generate_smart_scenarios
 
@@ -337,6 +337,46 @@ def list_specs(
     
     specs = db.query(Spec).filter(Spec.project_id == project_id).all()
     return specs
+
+
+@router.delete("/{project_id}/specs/{spec_id}")
+def delete_spec(
+    project_id: int,
+    spec_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Delete an OpenAPI spec and its file from storage."""
+    # Verify project ownership
+    project = db.query(Project).filter(
+        Project.id == project_id,
+        Project.user_id == current_user.id
+    ).first()
+
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    # Get the spec
+    spec = db.query(Spec).filter(
+        Spec.id == spec_id,
+        Spec.project_id == project_id
+    ).first()
+
+    if not spec:
+        raise HTTPException(status_code=404, detail="Spec not found")
+
+    # Delete from MinIO storage
+    try:
+        delete_file("specs", spec.minio_key)
+    except Exception as e:
+        # Log error but continue with database deletion
+        print(f"Warning: Failed to delete spec file from storage: {str(e)}")
+
+    # Delete from database (scenarios will have their spec_id set to NULL due to ondelete="SET NULL")
+    db.delete(spec)
+    db.commit()
+
+    return {"message": "Spec deleted successfully"}
 
 
 @router.post("/{project_id}/scenario/generate", response_model=ScenarioResponse)

@@ -32,10 +32,29 @@ export default function DocsPage() {
 
                     {/* Quick Links */}
                     <div className="grid md:grid-cols-2 gap-6 mb-16">
-                        <Link href="/docs/openapi-generation" className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-6 hover:border-white/[0.15] transition group">
+                        <Link href="/docs/getting-started" className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-6 hover:border-white/[0.15] transition group">
                             <div className="flex items-start gap-4">
                                 <div className="w-12 h-12 rounded-lg bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
                                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-emerald-400">
+                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                                        <polyline points="22 4 12 14.01 9 11.01" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 className="text-white font-semibold mb-2 group-hover:text-emerald-400 transition">
+                                        Getting Started
+                                    </h3>
+                                    <p className="text-white/40 text-sm">
+                                        Step-by-step guide to running your first stress test in under 5 minutes
+                                    </p>
+                                </div>
+                            </div>
+                        </Link>
+
+                        <Link href="/docs/openapi-generation" className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-6 hover:border-white/[0.15] transition group">
+                            <div className="flex items-start gap-4">
+                                <div className="w-12 h-12 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-400">
                                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                                         <polyline points="14 2 14 8 20 8" />
                                         <line x1="16" y1="13" x2="8" y2="13" />
@@ -44,7 +63,7 @@ export default function DocsPage() {
                                     </svg>
                                 </div>
                                 <div>
-                                    <h3 className="text-white font-semibold mb-2 group-hover:text-emerald-400 transition">
+                                    <h3 className="text-white font-semibold mb-2 group-hover:text-blue-400 transition">
                                         Generate OpenAPI Spec
                                     </h3>
                                     <p className="text-white/40 text-sm">
@@ -53,25 +72,6 @@ export default function DocsPage() {
                                 </div>
                             </div>
                         </Link>
-
-                        <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-6 opacity-50">
-                            <div className="flex items-start gap-4">
-                                <div className="w-12 h-12 rounded-lg bg-white/[0.1] flex items-center justify-center flex-shrink-0">
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-white/40">
-                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                                        <polyline points="22 4 12 14.01 9 11.01" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h3 className="text-white/60 font-semibold mb-2">
-                                        Getting Started (Coming Soon)
-                                    </h3>
-                                    <p className="text-white/30 text-sm">
-                                        Step-by-step guide to running your first load test
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
                     {/* Overview */}
@@ -144,6 +144,9 @@ export default function DocsPage() {
                     <div className="flex flex-wrap gap-4 md:gap-6 text-white/30 text-sm justify-center">
                         <Link href="/docs" className="hover:text-white/50 transition">
                             Documentation
+                        </Link>
+                        <Link href="/docs/getting-started" className="hover:text-white/50 transition">
+                            Getting Started
                         </Link>
                         <Link href="/docs/openapi-generation" className="hover:text-white/50 transition">
                             Generate OpenAPI Spec

@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings
+from pydantic import field_validator
 from typing import Optional
 
 
@@ -64,7 +65,17 @@ class Settings(BaseSettings):
     
     # Free credits on signup
     free_credits_on_signup: int = 50
-    
+
+    @field_validator('stripe_secret_key', 'stripe_webhook_secret', mode='before')
+    @classmethod
+    def strip_whitespace(cls, v):
+        """Strip whitespace from Stripe keys to prevent newline issues."""
+        if v is None:
+            return v
+        if isinstance(v, str):
+            return v.strip()
+        return v
+
     class Config:
         env_file = ".env"
         case_sensitive = False

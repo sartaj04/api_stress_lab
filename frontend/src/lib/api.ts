@@ -156,6 +156,11 @@ export const projects = {
 
     listSpecs: (id: number) => request<Spec[]>(`/projects/${id}/specs`),
 
+    deleteSpec: (projectId: number, specId: number) =>
+        request<{ message: string }>(`/projects/${projectId}/specs/${specId}`, {
+            method: 'DELETE',
+        }),
+
     generateScenario: (projectId: number, specId: number) =>
         request<Scenario>(`/projects/${projectId}/scenario/generate?spec_id=${specId}`, {
             method: 'POST',

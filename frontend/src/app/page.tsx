@@ -349,6 +349,9 @@ export default function Home() {
                         <Link href="/docs" className="hover:text-white/50 transition">
                             Documentation
                         </Link>
+                        <Link href="/docs/getting-started" className="hover:text-white/50 transition">
+                            Getting Started
+                        </Link>
                         <Link href="/docs/openapi-generation" className="hover:text-white/50 transition">
                             Generate OpenAPI Spec
                         </Link>
