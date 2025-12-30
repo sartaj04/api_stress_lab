@@ -351,7 +351,7 @@ export default function DashboardPage() {
                         {needsVerification ? (
                             <button
                                 disabled
-                                className="btn-primary text-sm whitespace-nowrap flex-shrink-0 opacity-50 cursor-not-allowed"
+                                className="btn-primary text-sm whitespace-nowrap flex-shrink-0 opacity-50 cursor-not-allowed pointer-events-none"
                                 title="Please verify your email before creating projects"
                             >
                                 Add New...
@@ -535,6 +535,14 @@ export default function DashboardPage() {
                                         className="btn-primary text-sm"
                                     >
                                         Clear search
+                                    </button>
+                                ) : needsVerification ? (
+                                    <button
+                                        disabled
+                                        className="btn-primary text-sm inline-block opacity-50 cursor-not-allowed pointer-events-none"
+                                        title="Please verify your email before creating projects"
+                                    >
+                                        Create your first project
                                     </button>
                                 ) : (
                                     <Link href="/projects/new" className="btn-primary text-sm inline-block">
