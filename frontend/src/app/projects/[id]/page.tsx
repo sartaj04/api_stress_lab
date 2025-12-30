@@ -198,6 +198,7 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
                                 onChange={(e) => setBaseUrl(e.target.value)}
                                 className="w-full px-3 py-2 bg-white/[0.03] border border-white/[0.08] rounded-lg text-white placeholder-white/30 focus:outline-none focus:border-white/20 text-sm"
                                 placeholder="https://api.example.com"
+                                autoComplete="off"
                             />
                         </div>
 
@@ -254,6 +255,7 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
                                 onChange={(e) => setAuthValue(e.target.value)}
                                 className="w-full px-3 py-2 bg-white/[0.03] border border-white/[0.08] rounded-lg text-white placeholder-white/30 focus:outline-none focus:border-white/20 text-sm"
                                 placeholder="••••••••"
+                                autoComplete="new-password"
                             />
                             <p className="text-white/30 text-xs mt-1">Credentials are encrypted at rest</p>
                         </div>
