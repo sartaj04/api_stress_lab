@@ -8,7 +8,7 @@ from typing import Dict, Any, List
 
 from .worker import celery_app
 from .database import SessionLocal
-from .models import Run, Scenario, Project, ProjectSecret, RunMetricsTimeseries, RunEndpointMetrics, RunArtifact
+from .models import Run, Scenario, Project, ProjectSecret, RunMetricsTimeseries, RunEndpointMetrics, RunArtifact, User
 from .crypto import decrypt_secret
 from .k6_generator import generate_k6_script
 from .storage import upload_file, download_file
@@ -210,6 +210,48 @@ def run_load_test(self, run_id: int):
                 os.unlink(summary_path)
         
         db.commit()
+        
+        # Check if suite is complete and send email notification
+        suite_id = run.config.get("suite_id")
+        if suite_id:
+            # Get all runs in this suite
+            suite_runs = db.query(Run).filter(
+                Run.project_id == run.project_id
+            ).all()
+            suite_runs = [r for r in suite_runs if r.config.get("suite_id") == suite_id]
+            
+            # Check if all runs are complete (completed or failed)
+            all_completed = all(r.status in ["completed", "failed"] for r in suite_runs)
+            
+            if all_completed:
+                # Send email notification
+                from .email import send_suite_completion_email
+                from .config import settings
+                
+                project = db.query(Project).filter(Project.id == run.project_id).first()
+                user = db.query(User).filter(User.id == run.user_id).first()
+                
+                if project and user and user.email:
+                    suite_url = f"{settings.frontend_url}/projects/{project.id}/dashboard?suite={suite_id}"
+                    completed_count = len([r for r in suite_runs if r.status == "completed"])
+                    total_count = len(suite_runs)
+                    
+                    # Send email asynchronously (don't block task completion)
+                    try:
+                        send_suite_completion_email(
+                            email=user.email,
+                            project_name=project.name,
+                            suite_id=suite_id,
+                            suite_url=suite_url,
+                            completed_tests=completed_count,
+                            total_tests=total_count
+                        )
+                    except Exception as e:
+                        # Log error but don't fail the task
+                        import logging
+                        logger = logging.getLogger(__name__)
+                        logger.error(f"Failed to send suite completion email: {str(e)}")
+        
         return {"status": "completed", "run_id": run_id}
         
     except Exception as e:
@@ -219,6 +261,48 @@ def run_load_test(self, run_id: int):
             run.error_message = str(e)
             run.finished_at = datetime.utcnow()
             db.commit()
+            
+            # Check if suite is complete even if this run failed
+            suite_id = run.config.get("suite_id")
+            if suite_id:
+                # Get all runs in this suite
+                suite_runs = db.query(Run).filter(
+                    Run.project_id == run.project_id
+                ).all()
+                suite_runs = [r for r in suite_runs if r.config.get("suite_id") == suite_id]
+                
+                # Check if all runs are complete (completed or failed)
+                all_completed = all(r.status in ["completed", "failed"] for r in suite_runs)
+                
+                if all_completed:
+                    # Send email notification
+                    from .email import send_suite_completion_email
+                    from .config import settings
+                    
+                    project = db.query(Project).filter(Project.id == run.project_id).first()
+                    user = db.query(User).filter(User.id == run.user_id).first()
+                    
+                    if project and user and user.email:
+                        suite_url = f"{settings.frontend_url}/projects/{project.id}/dashboard?suite={suite_id}"
+                        completed_count = len([r for r in suite_runs if r.status == "completed"])
+                        total_count = len(suite_runs)
+                        
+                        # Send email asynchronously (don't block task completion)
+                        try:
+                            send_suite_completion_email(
+                                email=user.email,
+                                project_name=project.name,
+                                suite_id=suite_id,
+                                suite_url=suite_url,
+                                completed_tests=completed_count,
+                                total_tests=total_count
+                            )
+                        except Exception as email_error:
+                            # Log error but don't fail the task
+                            import logging
+                            logger = logging.getLogger(__name__)
+                            logger.error(f"Failed to send suite completion email: {str(email_error)}")
+        
         raise
     
     finally:
@@ -374,7 +458,7 @@ def auto_run_suite_for_spec(self, project_id: int, spec_id: int, user_id: int):
     """
     import uuid
     from .suite_runner import get_suite_run_configs, SUITE_PROFILES
-    from .openapi_parser import parse_openapi_spec
+    from .openapi_parser import parse_openapi_spec, generate_scenario_from_spec
     from .storage import download_file
     from .models import Spec, Scenario, User
     
@@ -398,7 +482,9 @@ def auto_run_suite_for_spec(self, project_id: int, spec_id: int, user_id: int):
         
         # Download and parse spec
         spec_content = download_file("specs", spec.minio_key)
-        endpoints = parse_openapi_spec(spec_content.decode())
+        parsed_spec = parse_openapi_spec(spec_content, spec.filename)
+        scenario_config = generate_scenario_from_spec(parsed_spec)
+        endpoints = scenario_config.get("endpoints", [])
         
         if not endpoints:
             raise ValueError("No endpoints found in spec")

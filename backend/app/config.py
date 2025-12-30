@@ -51,10 +51,10 @@ class Settings(BaseSettings):
     
     # Credit packages: {price_id: {name, credits, price_cents}}
     credit_packages: dict = {
-        "price_intro": {"name": "Intro", "credits": 150, "price_cents": 1000},
-        "price_standard": {"name": "Standard", "credits": 450, "price_cents": 2500},
-        "price_value": {"name": "Value", "credits": 1000, "price_cents": 5000},
-        "price_pro": {"name": "Pro", "credits": 2400, "price_cents": 10000},
+        "price_intro": {"name": "Intro", "credits": 50, "price_cents": 1000},
+        "price_standard": {"name": "Standard", "credits": 150, "price_cents": 2500},
+        "price_value": {"name": "Value", "credits": 350, "price_cents": 5000},
+        "price_pro": {"name": "Pro", "credits": 800, "price_cents": 10000},
     }
     
     # Credit calculation constants

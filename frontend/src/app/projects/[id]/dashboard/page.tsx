@@ -36,6 +36,7 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
     const [rerunning, setRerunning] = useState(false);
     const [profileReports, setProfileReports] = useState<Record<number, any>>({});
     const [loadingSteps, setLoadingSteps] = useState<string[]>([]);
+    const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
     useEffect(() => {
         if (!authLoading && !user) {
@@ -99,9 +100,16 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
 
     useEffect(() => {
         if (user && projectId) {
-            loadData();
+            // Check if suite ID is in URL query params (from email link)
+            const suiteFromUrl = searchParams.get('suite');
+            if (suiteFromUrl) {
+                setSelectedSuiteId(suiteFromUrl);
+                loadData(suiteFromUrl);
+            } else {
+                loadData();
+            }
         }
-    }, [user, projectId, loadData]);
+    }, [user, projectId, loadData, searchParams]);
 
     const loadSuite = async (suiteId: string) => {
         setSelectedSuiteId(suiteId);
@@ -139,10 +147,19 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
         setRerunning(true);
         try {
             const result = await runs.runSuite(projectId, suite.scenario_id);
+            setToast({
+                message: 'Tests are running! Sit back and relax - we\'ll notify you via email when your test suite is complete.',
+                type: 'success'
+            });
+            setTimeout(() => setToast(null), 5000);
             // Reload to show the new suite
             await loadData(result.suite_id);
         } catch (err: any) {
-            alert('Failed to start test suite: ' + err.message);
+            setToast({
+                message: 'Failed to start test suite: ' + err.message,
+                type: 'error'
+            });
+            setTimeout(() => setToast(null), 5000);
         } finally {
             setRerunning(false);
         }
@@ -183,6 +200,12 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
                             <div className="w-16 h-16 border-4 border-white/10 border-t-emerald-500 rounded-full animate-spin"></div>
                             <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-b-emerald-400/50 rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
                         </div>
+                    </div>
+
+                    {/* Friendly message */}
+                    <div className="text-center mb-8">
+                        <h2 className="text-xl font-medium text-white mb-2">Sit back and relax</h2>
+                        <p className="text-white/60 text-sm">We&apos;re loading your test results and will notify you via email when complete.</p>
                     </div>
 
                     {/* Loading steps */}
@@ -258,6 +281,34 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
 
     return (
         <main className="min-h-screen" style={{ background: '#111113' }}>
+            {/* Toast Notification */}
+            {toast && (
+                <div className={`fixed top-20 right-6 z-50 max-w-md ${
+                    toast.type === 'success'
+                        ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+                        : 'bg-red-500/10 border border-red-500/20 text-red-400'
+                } rounded-lg p-4 shadow-lg flex items-center gap-3 transition-all`}>
+                    {toast.type === 'success' ? (
+                        <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                    ) : (
+                        <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    )}
+                    <p className="text-sm font-medium">{toast.message}</p>
+                    <button
+                        onClick={() => setToast(null)}
+                        className="ml-auto text-current/60 hover:text-current"
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            )}
+
             {/* Header */}
             <header className="nav sticky top-0 z-50">
                 <div className="max-w-6xl mx-auto px-6 py-4">
@@ -305,19 +356,96 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
                     <div className="space-y-6">
                             {suite && (
                                 <>
-                                    {/* Progress Bar if Running */}
+                                    {/* Test Execution Status if Running */}
                                     {suite.status !== 'completed' && (
                                         <div className="card p-5">
-                                            <div className="flex items-center justify-between mb-3">
-                                                <span className="text-white/40 text-sm">Test Progress</span>
-                                                <span className="text-white font-medium text-sm">{suite.completed_tests} / {suite.total_tests}</span>
+                                            <div className="flex items-center justify-between mb-4">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></span>
+                                                    <span className="text-white font-medium text-sm">Test Suite Running</span>
+                                                </div>
+                                                <span className="text-white/40 text-xs">{suite.completed_tests} of {suite.total_tests} completed</span>
                                             </div>
-                                            <div className="w-full bg-white/10 rounded-full h-2">
-                                                <div
-                                                    className="h-2 rounded-full bg-white transition-all"
-                                                    style={{ width: `${(suite.completed_tests / suite.total_tests) * 100}%` }}
-                                                />
+                                            
+                                            {/* Test Status List */}
+                                            <div className="space-y-2">
+                                                {suite.results.map((result, index) => {
+                                                    const isRunning = result.status === 'running';
+                                                    const isCompleted = result.status === 'completed';
+                                                    const isFailed = result.status === 'failed';
+                                                    const isPending = result.status === 'pending';
+                                                    
+                                                    return (
+                                                        <div
+                                                            key={result.run_id}
+                                                            className={`flex items-center gap-3 p-3 rounded-lg transition ${
+                                                                isRunning 
+                                                                    ? 'bg-yellow-500/10 border border-yellow-500/20' 
+                                                                    : isCompleted
+                                                                    ? 'bg-white/5'
+                                                                    : isFailed
+                                                                    ? 'bg-red-500/10'
+                                                                    : 'bg-white/[0.02]'
+                                                            }`}
+                                                        >
+                                                            {/* Status Icon */}
+                                                            <div className="flex-shrink-0">
+                                                                {isRunning ? (
+                                                                    <div className="w-5 h-5 rounded-full border-2 border-yellow-400 border-t-transparent animate-spin"></div>
+                                                                ) : isCompleted ? (
+                                                                    <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                                    </svg>
+                                                                ) : isFailed ? (
+                                                                    <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                                    </svg>
+                                                                ) : (
+                                                                    <div className="w-5 h-5 rounded-full border-2 border-white/20"></div>
+                                                                )}
+                                                            </div>
+                                                            
+                                                            {/* Test Info */}
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex items-center justify-between">
+                                                                    <span className={`text-sm font-medium ${
+                                                                        isRunning ? 'text-yellow-400' : 
+                                                                        isCompleted ? 'text-white' : 
+                                                                        isFailed ? 'text-red-400' : 
+                                                                        'text-white/60'
+                                                                    }`}>
+                                                                        {result.suite_profile_name}
+                                                                    </span>
+                                                                    {isRunning && (
+                                                                        <span className="text-xs text-yellow-400/80 animate-pulse">Running...</span>
+                                                                    )}
+                                                                </div>
+                                                                {isCompleted && result.total_requests > 0 && (
+                                                                    <div className="text-xs text-white/40 mt-1">
+                                                                        {result.total_requests.toLocaleString()} requests • {(result.error_rate * 100).toFixed(1)}% error rate
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
                                             </div>
+                                            
+                                            {/* Current Test Indicator */}
+                                            {suite.results.some(r => r.status === 'running') && (
+                                                <div className="mt-4 pt-4 border-t border-white/10">
+                                                    <div className="flex items-center gap-2 text-sm text-white/60">
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
+                                                        <span>
+                                                            Currently executing: <span className="text-yellow-400 font-medium">
+                                                                {suite.results.find(r => r.status === 'running')?.suite_profile_name || 'Test'}
+                                                            </span>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
 
