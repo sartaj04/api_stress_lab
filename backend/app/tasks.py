@@ -226,15 +226,20 @@ def run_load_test(self, run_id: int):
             if all_completed:
                 # Send email notification
                 from .email import send_suite_completion_email
-                from .config import settings
-                
+
                 project = db.query(Project).filter(Project.id == run.project_id).first()
                 user = db.query(User).filter(User.id == run.user_id).first()
-                
+
                 if project and user and user.email:
                     suite_url = f"{settings.frontend_url}/projects/{project.id}/dashboard?suite={suite_id}"
                     completed_count = len([r for r in suite_runs if r.status == "completed"])
                     total_count = len(suite_runs)
+
+                    # Log the URL for debugging
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.info(f"Suite completed. Sending email to {user.email} with URL: {suite_url} (frontend_url={settings.frontend_url})")
+
                     # Send email asynchronously (don't block task completion)
                     try:
                         send_suite_completion_email(
@@ -276,11 +281,10 @@ def run_load_test(self, run_id: int):
                 if all_completed:
                     # Send email notification
                     from .email import send_suite_completion_email
-                    from .config import settings
-                    
+
                     project = db.query(Project).filter(Project.id == run.project_id).first()
                     user = db.query(User).filter(User.id == run.user_id).first()
-                    
+
                     if project and user and user.email:
                         suite_url = f"{settings.frontend_url}/projects/{project.id}/dashboard?suite={suite_id}"
                         completed_count = len([r for r in suite_runs if r.status == "completed"])
@@ -289,7 +293,7 @@ def run_load_test(self, run_id: int):
                         # Log the URL for debugging
                         import logging
                         logger = logging.getLogger(__name__)
-                        logger.info(f"Sending email with suite URL: {suite_url} (frontend_url={settings.frontend_url})")
+                        logger.info(f"Suite completed (failed run). Sending email to {user.email} with URL: {suite_url} (frontend_url={settings.frontend_url})")
 
                         # Send email asynchronously (don't block task completion)
                         try:
