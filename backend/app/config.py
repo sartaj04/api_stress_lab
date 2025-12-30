@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     encryption_key: str = "none"
     
     # CORS
-    cors_origins: str = "http://localhost:3000"
+    cors_origins: str = None
     
     # OpenAI
     openai_api_key: Optional[str] = None
@@ -39,7 +39,8 @@ class Settings(BaseSettings):
     google_client_secret: Optional[str] = None
     
     # App URLs
-    frontend_url: str = "http://localhost:3000"
+    frontend_url: str = None
+    backend_url: str = None
     
     # Email (SMTP) - Optional, for password reset emails
     smtp_enabled: bool = False
@@ -48,7 +49,7 @@ class Settings(BaseSettings):
     smtp_use_tls: bool = True
     smtp_username: Optional[str] = None
     smtp_password: Optional[str] = None
-    smtp_from_email: str = "noreply@apistresslab.com"
+    smtp_from_email: str = None
     
     # Credit packages: {price_id: {name, credits, price_cents}}
     credit_packages: dict = {

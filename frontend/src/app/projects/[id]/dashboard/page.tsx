@@ -147,20 +147,14 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
         setRerunning(true);
         try {
             const result = await runs.runSuite(projectId, suite.scenario_id);
-            setToast({
-                message: 'Tests queued! We\'ll notify you via email when complete.',
-                type: 'success'
-            });
-            setTimeout(() => setToast(null), 5000);
-            // Reload to show the new suite
-            await loadData(result.suite_id);
+            // Navigate to new suite immediately
+            router.push(`/projects/${projectId}/dashboard?suite=${result.suite_id}`);
         } catch (err: any) {
             setToast({
                 message: 'Failed to start test suite: ' + err.message,
                 type: 'error'
             });
             setTimeout(() => setToast(null), 5000);
-        } finally {
             setRerunning(false);
         }
     };

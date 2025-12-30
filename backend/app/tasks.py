@@ -224,8 +224,10 @@ def run_load_test(self, run_id: int):
             all_completed = all(r.status in ["completed", "failed"] for r in suite_runs)
             
             if all_completed:
-                # Send email notification
-                from .email import send_suite_completion_email
+                # Send email notification via Render API endpoint
+                import httpx
+                import logging
+                logger = logging.getLogger(__name__)
 
                 project = db.query(Project).filter(Project.id == run.project_id).first()
                 user = db.query(User).filter(User.id == run.user_id).first()
@@ -235,21 +237,24 @@ def run_load_test(self, run_id: int):
                     completed_count = len([r for r in suite_runs if r.status == "completed"])
                     total_count = len(suite_runs)
 
-                    # Log the URL for debugging
-                    import logging
-                    logger = logging.getLogger(__name__)
-                    logger.info(f"Suite completed. Sending email to {user.email} with URL: {suite_url} (frontend_url={settings.frontend_url})")
+                    logger.info(f"Suite completed. Triggering email via API to {user.email} with URL: {suite_url}")
 
-                    # Send email asynchronously (don't block task completion)
+                    # Call Render API endpoint to send email (works from Railway worker)
                     try:
-                        send_suite_completion_email(
-                            email=user.email,
-                            project_name=project.name,
-                            suite_id=suite_id,
-                            suite_url=suite_url,
-                            completed_tests=completed_count,
-                            total_tests=total_count
+                        response = httpx.post(
+                            f"{settings.backend_url}/internal/send-suite-completion-email",
+                            json={
+                                "email": user.email,
+                                "project_name": project.name,
+                                "suite_id": suite_id,
+                                "suite_url": suite_url,
+                                "completed_tests": completed_count,
+                                "total_tests": total_count
+                            },
+                            timeout=10.0
                         )
+                        response.raise_for_status()
+                        logger.info(f"Email API call successful for {user.email}")
                     except Exception as e:
                         # Log error but don't fail the task
                         import logging
@@ -279,8 +284,10 @@ def run_load_test(self, run_id: int):
                 all_completed = all(r.status in ["completed", "failed"] for r in suite_runs)
                 
                 if all_completed:
-                    # Send email notification
-                    from .email import send_suite_completion_email
+                    # Send email notification via Render API endpoint
+                    import httpx
+                    import logging
+                    logger = logging.getLogger(__name__)
 
                     project = db.query(Project).filter(Project.id == run.project_id).first()
                     user = db.query(User).filter(User.id == run.user_id).first()
@@ -290,25 +297,25 @@ def run_load_test(self, run_id: int):
                         completed_count = len([r for r in suite_runs if r.status == "completed"])
                         total_count = len(suite_runs)
 
-                        # Log the URL for debugging
-                        import logging
-                        logger = logging.getLogger(__name__)
-                        logger.info(f"Suite completed (failed run). Sending email to {user.email} with URL: {suite_url} (frontend_url={settings.frontend_url})")
+                        logger.info(f"Suite completed (failed run). Triggering email via API to {user.email} with URL: {suite_url}")
 
-                        # Send email asynchronously (don't block task completion)
+                        # Call Render API endpoint to send email (works from Railway worker)
                         try:
-                            send_suite_completion_email(
-                                email=user.email,
-                                project_name=project.name,
-                                suite_id=suite_id,
-                                suite_url=suite_url,
-                                completed_tests=completed_count,
-                                total_tests=total_count
+                            response = httpx.post(
+                                f"{settings.backend_url}/internal/send-suite-completion-email",
+                                json={
+                                    "email": user.email,
+                                    "project_name": project.name,
+                                    "suite_id": suite_id,
+                                    "suite_url": suite_url,
+                                    "completed_tests": completed_count,
+                                    "total_tests": total_count
+                                },
+                                timeout=10.0
                             )
+                            response.raise_for_status()
+                            logger.info(f"Email API call successful for {user.email}")
                         except Exception as email_error:
-                            # Log error but don't fail the task
-                            import logging
-                            logger = logging.getLogger(__name__)
                             logger.error(f"Failed to send suite completion email: {str(email_error)}")
         
         raise

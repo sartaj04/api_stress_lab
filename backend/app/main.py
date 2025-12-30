@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import settings
-from .routers import auth, projects, runs, billing, demo
+from .routers import auth, projects, runs, billing, demo, internal
 
 app = FastAPI(
     title="API Stress Lab",
@@ -28,6 +28,7 @@ app.include_router(projects.router)
 app.include_router(runs.router)
 app.include_router(billing.router)
 app.include_router(demo.router)
+app.include_router(internal.router)
 
 
 @app.get("/")
