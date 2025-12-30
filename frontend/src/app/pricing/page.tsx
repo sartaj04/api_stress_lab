@@ -13,12 +13,15 @@ export default function PricingPage() {
     const [packages, setPackages] = useState<CreditPackage[]>([]);
     const [balance, setBalance] = useState<CreditBalance | null>(null);
     const [loading, setLoading] = useState(false);
+    const [packagesLoading, setPackagesLoading] = useState(true);
     const [error, setError] = useState('');
 
     useEffect(() => {
+        setPackagesLoading(true);
         billing.getPackages()
             .then((res) => setPackages(res.packages))
-            .catch(console.error);
+            .catch(console.error)
+            .finally(() => setPackagesLoading(false));
 
         if (user) {
             billing.getBalance()
@@ -134,7 +137,27 @@ export default function PricingPage() {
 
                 {/* Credit Packages */}
                 <div className="grid md:grid-cols-2 gap-6 mb-12">
-                    {packages.map((pkg, index) => (
+                    {packagesLoading ? (
+                        // Loading skeleton
+                        <>
+                            {[1, 2, 3, 4].map((i) => (
+                                <div key={i} className="card p-6 animate-pulse">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div className="space-y-2">
+                                            <div className="h-6 w-24 bg-white/10 rounded"></div>
+                                            <div className="h-4 w-32 bg-white/10 rounded"></div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <div className="h-8 w-16 bg-white/10 rounded"></div>
+                                            <div className="h-3 w-20 bg-white/10 rounded"></div>
+                                        </div>
+                                    </div>
+                                    <div className="h-10 w-full bg-white/10 rounded-lg"></div>
+                                </div>
+                            ))}
+                        </>
+                    ) : (
+                        packages.map((pkg, index) => (
                         <div
                             key={pkg.id}
                             className={`card p-6 relative ${index === 2 ? 'border-white/20' : ''}`}
@@ -167,7 +190,8 @@ export default function PricingPage() {
                                 {loading ? 'Loading...' : 'Buy Credits'}
                             </button>
                         </div>
-                    ))}
+                        ))
+                    )}
                 </div>
 
                 {/* How Credits Work */}

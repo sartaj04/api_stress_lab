@@ -142,12 +142,13 @@ def get_packages():
 
 @router.post("/buy-credits")
 def buy_credits(
-    package_id: str,
+    request_body: dict,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """Create Stripe checkout session for credit purchase."""
     stripe_client = get_stripe()
+    package_id = request_body.get("package_id")
     
     if package_id not in settings.credit_packages:
         raise HTTPException(status_code=400, detail="Invalid package")
