@@ -28,6 +28,13 @@ def create_project(
     db: Session = Depends(get_db)
 ):
     """Create a new project."""
+    # Check email verification for email auth users
+    if current_user.auth_provider == "email" and not current_user.email_verified:
+        raise HTTPException(
+            status_code=403,
+            detail="Please verify your email address before creating projects. Check your inbox for the verification link."
+        )
+
     project = Project(
         user_id=current_user.id,
         name=data.name,
@@ -474,11 +481,18 @@ def create_scenario(
     db: Session = Depends(get_db)
 ):
     """Create a custom scenario."""
+    # Check email verification for email auth users
+    if current_user.auth_provider == "email" and not current_user.email_verified:
+        raise HTTPException(
+            status_code=403,
+            detail="Please verify your email address before creating scenarios. Check your inbox for the verification link."
+        )
+
     project = db.query(Project).filter(
         Project.id == project_id,
         Project.user_id == current_user.id
     ).first()
-    
+
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     

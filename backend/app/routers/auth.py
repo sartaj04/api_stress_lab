@@ -8,14 +8,14 @@ from sqlalchemy.sql import func
 import secrets
 
 from ..database import get_db
-from ..models import User, PasswordResetToken
+from ..models import User, PasswordResetToken, EmailVerificationToken
 from ..schemas import (
     UserCreate, UserLogin, UserResponse, TokenResponse, ApiKeyCreate, ApiKeyResponse,
-    ForgotPasswordRequest, ResetPasswordRequest
+    ForgotPasswordRequest, ResetPasswordRequest, VerifyEmailRequest, ResendVerificationRequest
 )
 from ..auth import hash_password, verify_password, create_access_token, get_current_user, generate_api_key
 from ..config import settings
-from ..email import send_password_reset_email
+from ..email import send_password_reset_email, send_email_verification_email
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -32,24 +32,39 @@ class GoogleTokenRequest(BaseModel):
 
 @router.post("/signup", response_model=TokenResponse)
 def signup(user_data: UserCreate, db: Session = Depends(get_db)):
-    """Create a new user account."""
+    """Create a new user account and send verification email."""
     # Check if email already exists
     existing = db.query(User).filter(User.email == user_data.email).first()
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
-    
-    # Create user
+
+    # Create user (email_verified defaults to False)
     user = User(
         email=user_data.email,
-        hashed_password=hash_password(user_data.password)
+        hashed_password=hash_password(user_data.password),
+        email_verified=False
     )
     db.add(user)
     db.commit()
     db.refresh(user)
-    
-    # Generate token
-    token = create_access_token(user.id)
-    return TokenResponse(access_token=token)
+
+    # Generate verification token
+    token = secrets.token_urlsafe(32)
+    verification_token = EmailVerificationToken(
+        user_id=user.id,
+        token=token,
+        expires_at=datetime.utcnow() + timedelta(hours=24)
+    )
+    db.add(verification_token)
+    db.commit()
+
+    # Send verification email
+    verification_url = f"{settings.frontend_url}/verify-email?token={token}"
+    send_email_verification_email(user.email, verification_url)
+
+    # Generate JWT token (user can log in but cannot run tests until verified)
+    jwt_token = create_access_token(user.id)
+    return TokenResponse(access_token=jwt_token)
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -67,6 +82,18 @@ def login(credentials: UserLogin, db: Session = Depends(get_db)):
 def get_me(current_user: User = Depends(get_current_user)):
     """Get current user info."""
     return current_user
+
+
+@router.get("/verification-status")
+def get_verification_status(current_user: User = Depends(get_current_user)):
+    """Get email verification status for current user."""
+    return {
+        "email": current_user.email,
+        "email_verified": current_user.email_verified,
+        "email_verified_at": current_user.email_verified_at.isoformat() if current_user.email_verified_at else None,
+        "auth_provider": current_user.auth_provider,
+        "needs_verification": current_user.auth_provider == "email" and not current_user.email_verified
+    }
 
 
 @router.post("/api-keys", response_model=ApiKeyResponse)
@@ -207,6 +234,10 @@ async def google_auth(data: GoogleAuthRequest, db: Session = Depends(get_db)):
                     user.full_name = name
                 if picture and not user.avatar_url:
                     user.avatar_url = picture
+                # Auto-verify when linking Google OAuth
+                if not user.email_verified:
+                    user.email_verified = True
+                    user.email_verified_at = datetime.utcnow()
                 db.commit()
             else:
                 # Create new user
@@ -218,6 +249,8 @@ async def google_auth(data: GoogleAuthRequest, db: Session = Depends(get_db)):
                     avatar_url=picture,
                     credit_balance=settings.free_credits_on_signup,
                     free_credits_claimed=True,
+                    email_verified=True,
+                    email_verified_at=datetime.utcnow(),
                 )
                 db.add(user)
                 db.commit()
@@ -277,6 +310,10 @@ async def google_token_auth(data: GoogleTokenRequest, db: Session = Depends(get_
                     user.full_name = name
                 if picture and not user.avatar_url:
                     user.avatar_url = picture
+                # Auto-verify when linking Google OAuth
+                if not user.email_verified:
+                    user.email_verified = True
+                    user.email_verified_at = datetime.utcnow()
                 db.commit()
             else:
                 # Create new user with free credits
@@ -288,6 +325,8 @@ async def google_token_auth(data: GoogleTokenRequest, db: Session = Depends(get_
                     avatar_url=picture,
                     credit_balance=settings.free_credits_on_signup,
                     free_credits_claimed=True,
+                    email_verified=True,
+                    email_verified_at=datetime.utcnow(),
                 )
                 db.add(user)
                 db.commit()
@@ -374,6 +413,91 @@ def reset_password(request: ResetPasswordRequest, db: Session = Depends(get_db))
     db.commit()
     
     return {"message": "Password has been reset successfully"}
+
+
+# ============ Email Verification ============
+
+@router.post("/verify-email")
+def verify_email(request: VerifyEmailRequest, db: Session = Depends(get_db)):
+    """
+    Verify email address using a valid verification token.
+    """
+    # Find the verification token
+    verification_token = db.query(EmailVerificationToken).filter(
+        EmailVerificationToken.token == request.token,
+        EmailVerificationToken.used == False,
+        EmailVerificationToken.expires_at > datetime.utcnow()
+    ).first()
+
+    if not verification_token:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid or expired verification token"
+        )
+
+    # Get the user
+    user = db.query(User).filter(User.id == verification_token.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Check if already verified
+    if user.email_verified:
+        return {"message": "Email already verified", "already_verified": True}
+
+    # Mark email as verified
+    user.email_verified = True
+    user.email_verified_at = datetime.utcnow()
+
+    # Mark token as used
+    verification_token.used = True
+
+    # Delete any other unused verification tokens for this user
+    db.query(EmailVerificationToken).filter(
+        EmailVerificationToken.user_id == user.id,
+        EmailVerificationToken.used == False,
+        EmailVerificationToken.id != verification_token.id
+    ).delete()
+
+    db.commit()
+
+    return {"message": "Email verified successfully", "already_verified": False}
+
+
+@router.post("/resend-verification")
+def resend_verification(
+    request: ResendVerificationRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Resend verification email. Always returns success to prevent email enumeration.
+    Only sends if user exists, is not verified, and uses email auth.
+    """
+    user = db.query(User).filter(User.email == request.email).first()
+
+    # Only proceed if user exists, has email auth, and is not verified
+    if user and user.hashed_password and not user.email_verified:
+        # Invalidate any existing unused tokens
+        db.query(EmailVerificationToken).filter(
+            EmailVerificationToken.user_id == user.id,
+            EmailVerificationToken.used == False
+        ).update({"used": True})
+
+        # Generate new verification token
+        token = secrets.token_urlsafe(32)
+        verification_token = EmailVerificationToken(
+            user_id=user.id,
+            token=token,
+            expires_at=datetime.utcnow() + timedelta(hours=24)
+        )
+        db.add(verification_token)
+        db.commit()
+
+        # Send verification email
+        verification_url = f"{settings.frontend_url}/verify-email?token={token}"
+        send_email_verification_email(user.email, verification_url)
+
+    # Always return success to prevent email enumeration
+    return {"message": "If an unverified account with that email exists, a verification link has been sent."}
 
 
 @router.post("/waitlist/join")

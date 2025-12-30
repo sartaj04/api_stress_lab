@@ -25,6 +25,10 @@ class User(Base):
     free_credits_claimed = Column(Boolean, nullable=False, default=False)
     stripe_customer_id = Column(String(255), unique=True, nullable=True, index=True)
     
+    # Email verification
+    email_verified = Column(Boolean, nullable=False, default=False)
+    email_verified_at = Column(DateTime(timezone=True), nullable=True)
+
     # Waitlist
     observability_waitlist_joined = Column(Boolean, nullable=False, default=False)
     waitlist_joined_at = Column(DateTime(timezone=True), nullable=True)
@@ -38,6 +42,7 @@ class User(Base):
     runs = relationship("Run", back_populates="user", cascade="all, delete-orphan")
     credit_transactions = relationship("CreditTransaction", back_populates="user", cascade="all, delete-orphan")
     password_reset_tokens = relationship("PasswordResetToken", back_populates="user", cascade="all, delete-orphan")
+    email_verification_tokens = relationship("EmailVerificationToken", back_populates="user", cascade="all, delete-orphan")
 
 
 class CreditTransaction(Base):
@@ -229,12 +234,26 @@ class SuiteCache(Base):
 class PasswordResetToken(Base):
     """Password reset tokens for forgot password functionality."""
     __tablename__ = "password_reset_tokens"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     token = Column(String(255), unique=True, nullable=False, index=True)
     expires_at = Column(DateTime(timezone=True), nullable=False)
     used = Column(Boolean, nullable=False, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    
+
     user = relationship("User", back_populates="password_reset_tokens")
+
+
+class EmailVerificationToken(Base):
+    """Email verification tokens for new user signup."""
+    __tablename__ = "email_verification_tokens"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    token = Column(String(255), unique=True, nullable=False, index=True)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    used = Column(Boolean, nullable=False, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User", back_populates="email_verification_tokens")

@@ -108,6 +108,78 @@ def send_password_reset_email(email: str, reset_token: str, reset_url: str) -> b
     return send_email_via_resend(email, subject, html_body, text_body)
 
 
+def send_email_verification_email(email: str, verification_url: str) -> bool:
+    """
+    Send an email verification email to the user.
+    Uses Resend API.
+
+    Args:
+        email: User's email address
+        verification_url: The full URL to verify email (including token)
+
+    Returns:
+        True if email was sent successfully, False otherwise
+    """
+    subject = "Verify Your Email - API Stress Lab"
+
+    # Create HTML email body
+    html_body = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: #111113; padding: 30px; border-radius: 8px; margin-bottom: 20px;">
+            <h1 style="color: #fff; margin: 0; font-size: 24px;">API Stress Lab</h1>
+        </div>
+
+        <div style="background: #fff; padding: 30px; border-radius: 8px; border: 1px solid #e0e0e0;">
+            <h2 style="color: #333; margin-top: 0;">Verify Your Email Address</h2>
+            <p>Welcome to API Stress Lab! Please verify your email address to start running load tests.</p>
+
+            <div style="margin: 30px 0;">
+                <a href="{verification_url}" style="background: #111113; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 500;">
+                    Verify Email Address
+                </a>
+            </div>
+
+            <p style="color: #666; font-size: 14px; margin-top: 30px;">
+                Or copy and paste this link into your browser:<br>
+                <a href="{verification_url}" style="color: #0066cc; word-break: break-all;">{verification_url}</a>
+            </p>
+
+            <p style="color: #999; font-size: 12px; margin-top: 30px; border-top: 1px solid #e0e0e0; padding-top: 20px;">
+                This link will expire in 24 hours. If you didn't create an account with API Stress Lab, you can safely ignore this email.
+            </p>
+        </div>
+    </body>
+    </html>
+    """
+
+    # Create plain text version
+    text_body = f"""
+    Verify Your Email Address - API Stress Lab
+
+    Welcome to API Stress Lab! Please verify your email address to start running load tests.
+
+    Visit the link below to verify your email:
+
+    {verification_url}
+
+    This link will expire in 24 hours. If you didn't create an account with API Stress Lab, you can safely ignore this email.
+    """
+
+    # Send via Resend
+    if not settings.resend_api_key:
+        logger.error(f"RESEND_API_KEY not configured. Cannot send verification email to {email}")
+        return False
+
+    logger.info(f"Sending email verification via Resend to {email}")
+    return send_email_via_resend(email, subject, html_body, text_body)
+
+
 def send_suite_completion_email(email: str, project_name: str, suite_id: str, suite_url: str, completed_tests: int, total_tests: int) -> bool:
     """
     Send a notification email when a test suite completes.

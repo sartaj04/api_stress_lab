@@ -23,6 +23,14 @@ class ResetPasswordRequest(BaseModel):
     new_password: str = Field(..., min_length=8)
 
 
+class VerifyEmailRequest(BaseModel):
+    token: str
+
+
+class ResendVerificationRequest(BaseModel):
+    email: EmailStr
+
+
 class UserResponse(BaseModel):
     id: int
     email: str
@@ -33,8 +41,9 @@ class UserResponse(BaseModel):
     auth_provider: str = "email"
     full_name: Optional[str] = None
     avatar_url: Optional[str] = None
+    email_verified: bool = False
     created_at: datetime
-    
+
     class Config:
         from_attributes = True
 

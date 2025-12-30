@@ -21,6 +21,13 @@ def create_run(
     db: Session = Depends(get_db)
 ):
     """Create and start a new load test run."""
+    # Check email verification for email auth users
+    if current_user.auth_provider == "email" and not current_user.email_verified:
+        raise HTTPException(
+            status_code=403,
+            detail="Please verify your email address before running tests. Check your inbox for the verification link."
+        )
+
     # Verify project ownership
     project = db.query(Project).filter(
         Project.id == project_id,
@@ -300,7 +307,14 @@ def run_full_suite(
     """Run a full test suite with all profiles (smoke, ramp, spike, chaos)."""
     from ..suite_runner import get_suite_run_configs, SUITE_PROFILES
     import uuid
-    
+
+    # Check email verification for email auth users
+    if current_user.auth_provider == "email" and not current_user.email_verified:
+        raise HTTPException(
+            status_code=403,
+            detail="Please verify your email address before running tests. Check your inbox for the verification link."
+        )
+
     # Verify project ownership
     project = db.query(Project).filter(
         Project.id == project_id,

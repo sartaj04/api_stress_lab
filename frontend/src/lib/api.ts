@@ -118,6 +118,21 @@ export const auth = {
 
     getWaitlistStatus: () =>
         request<{ joined: boolean; joined_at: string | null }>('/auth/waitlist/status'),
+
+    getVerificationStatus: () =>
+        request<{ email: string; email_verified: boolean; needs_verification: boolean }>('/auth/verification-status'),
+
+    verifyEmail: (token: string) =>
+        request<{ message: string; already_verified: boolean }>('/auth/verify-email', {
+            method: 'POST',
+            body: { token },
+        }),
+
+    resendVerification: (email: string) =>
+        request<{ message: string }>('/auth/resend-verification', {
+            method: 'POST',
+            body: { email },
+        }),
 };
 
 // Projects
@@ -248,6 +263,7 @@ export interface User {
     auth_provider: 'email' | 'google';
     full_name?: string;
     avatar_url?: string;
+    email_verified?: boolean;
     created_at: string;
 }
 
