@@ -42,7 +42,7 @@ export default function GettingStartedPage() {
 
                     {/* Quick Overview */}
                     <div className="card p-6 mb-12 border-emerald-500/20 bg-emerald-500/5">
-                        <h3 className="text-white font-semibold mb-3">What you'll accomplish</h3>
+                        <h3 className="text-white font-semibold mb-3">What you&apos;ll accomplish</h3>
                         <ul className="space-y-2 text-white/60 text-sm">
                             <li className="flex items-start gap-2">
                                 <span className="text-emerald-400 mt-0.5">✓</span>
@@ -54,7 +54,7 @@ export default function GettingStartedPage() {
                             </li>
                             <li className="flex items-start gap-2">
                                 <span className="text-emerald-400 mt-0.5">✓</span>
-                                Understand your API's breaking point and performance bottlenecks
+                                Understand your API&apos;s breaking point and performance bottlenecks
                             </li>
                         </ul>
                     </div>
@@ -108,11 +108,11 @@ export default function GettingStartedPage() {
                                     </li>
                                     <li className="flex gap-2">
                                         <span className="text-white/40">2.</span>
-                                        Click "New Project"
+                                        Click &quot;New Project&quot;
                                     </li>
                                     <li className="flex gap-2">
                                         <span className="text-white/40">3.</span>
-                                        Enter a name (e.g., "My API") and optional description
+                                        Enter a name (e.g., &quot;My API&quot;) and optional description
                                     </li>
                                     <li className="flex gap-2">
                                         <span className="text-white/40">4.</span>
@@ -132,7 +132,7 @@ export default function GettingStartedPage() {
                             </div>
                             <div className="pl-11">
                                 <p className="text-white/60 mb-4">
-                                    Set your API's base URL and authentication before uploading your OpenAPI spec.
+                                    Set your API&apos;s base URL and authentication before uploading your OpenAPI spec.
                                 </p>
                                 <ol className="space-y-3 text-white/60 text-sm mb-4">
                                     <li className="flex gap-2">
@@ -149,7 +149,7 @@ export default function GettingStartedPage() {
                                     </li>
                                     <li className="flex gap-2">
                                         <span className="text-white/40">4.</span>
-                                        <strong className="text-white">Click "Save Configuration"</strong>
+                                        <strong className="text-white">Click &quot;Save Configuration&quot;</strong>
                                     </li>
                                 </ol>
                                 <div className="card p-4">
@@ -186,11 +186,11 @@ export default function GettingStartedPage() {
                             </div>
                             <div className="pl-11">
                                 <p className="text-white/60 mb-4">
-                                    Your OpenAPI spec (Swagger) tells us about your API's endpoints, so we can generate realistic test scenarios.
+                                    Your OpenAPI spec (Swagger) tells us about your API&apos;s endpoints, so we can generate realistic test scenarios.
                                 </p>
 
                                 <div className="card p-4 bg-white/[0.02] mb-4">
-                                    <p className="text-white/70 text-sm mb-2">Don't have an OpenAPI spec?</p>
+                                    <p className="text-white/70 text-sm mb-2">Don&apos;t have an OpenAPI spec?</p>
                                     <Link href="/docs/openapi-generation" className="text-emerald-400 hover:text-emerald-300 text-sm transition">
                                         Learn how to generate one from your framework →
                                     </Link>
@@ -199,11 +199,11 @@ export default function GettingStartedPage() {
                                 <ol className="space-y-3 text-white/60 text-sm">
                                     <li className="flex gap-2">
                                         <span className="text-white/40">1.</span>
-                                        Scroll down to the "OpenAPI Specs" section
+                                        Scroll down to the &quot;OpenAPI Specs&quot; section
                                     </li>
                                     <li className="flex gap-2">
                                         <span className="text-white/40">2.</span>
-                                        Click "Upload Spec"
+                                        Click &quot;Upload Spec&quot;
                                     </li>
                                     <li className="flex gap-2">
                                         <span className="text-white/40">3.</span>
@@ -228,7 +228,7 @@ export default function GettingStartedPage() {
                                 <ol className="space-y-3 text-white/60 text-sm mb-4">
                                     <li className="flex gap-2">
                                         <span className="text-white/40">1.</span>
-                                        Click "Generate Scenarios" (AI-powered, takes ~30 seconds)
+                                        Click &quot;Generate Scenarios&quot; (AI-powered, takes ~30 seconds)
                                     </li>
                                     <li className="flex gap-2">
                                         <span className="text-white/40">2.</span>
@@ -259,7 +259,7 @@ export default function GettingStartedPage() {
                             </div>
                             <div className="pl-11">
                                 <p className="text-white/60 mb-4">
-                                    A full test suite runs 4 different test profiles to thoroughly evaluate your API's performance and resilience.
+                                    A full test suite runs 4 different test profiles to thoroughly evaluate your API&apos;s performance and resilience.
                                 </p>
 
                                 <div className="grid md:grid-cols-2 gap-4 mb-6">
@@ -312,7 +312,7 @@ export default function GettingStartedPage() {
                                     </li>
                                     <li className="flex gap-2">
                                         <span className="text-white/40">2.</span>
-                                        Click "Run Full Suite"
+                                        Click &quot;Run Full Suite&quot;
                                     </li>
                                     <li className="flex gap-2">
                                         <span className="text-white/40">3.</span>
@@ -332,7 +332,7 @@ export default function GettingStartedPage() {
                             </div>
                             <div className="pl-11">
                                 <p className="text-white/60 mb-4">
-                                    After your test suite completes, you'll get comprehensive insights powered by AI analysis.
+                                    After your test suite completes, you&apos;ll get comprehensive insights powered by AI analysis.
                                 </p>
 
                                 <div className="space-y-3 mb-6">
