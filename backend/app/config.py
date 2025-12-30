@@ -50,6 +50,10 @@ class Settings(BaseSettings):
     smtp_username: Optional[str] = None
     smtp_password: Optional[str] = None
     smtp_from_email: str = None
+
+    # Resend (Email API) - Preferred for production
+    resend_api_key: Optional[str] = None
+    resend_from_email: str = "noreply@apistresslab.com"
     
     # Credit packages: {price_id: {name, credits, price_cents}}
     credit_packages: dict = {
