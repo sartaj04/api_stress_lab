@@ -70,7 +70,7 @@ paths:
 
 ## Why Every API Needs an OpenAPI Spec
 
-### 1. Automatic API Documentation
+### Automatic API Documentation
 
 **Without OpenAPI**:
 - Write documentation manually
@@ -94,7 +94,7 @@ paths:
 
 ---
 
-### 2. Client SDK Generation
+### Client SDK Generation
 
 **The problem**: Want to call your API from JavaScript, Python, or mobile? You need SDKs for each language.
 
@@ -127,7 +127,7 @@ const users = await api.getUsers();
 
 ---
 
-### 3. API Testing & Validation
+### API Testing & Validation
 
 **With an OpenAPI spec, you can**:
 - Validate requests/responses match the spec
@@ -169,7 +169,7 @@ schemathesis run openapi.yaml --base-url http://localhost:3000
 
 ---
 
-### 4. Load Testing Without Writing Scripts
+### Load Testing Without Writing Scripts
 
 **This is where OpenAPI really shines** (and why we built API Stress Lab).
 
@@ -205,7 +205,7 @@ export default function () {
 
 ---
 
-### 5. API Design & Planning
+### API Design & Planning
 
 **Design-first approach**: Create OpenAPI spec before writing code.
 
@@ -231,7 +231,7 @@ export default function () {
 
 ---
 
-### 6. API Versioning & Change Management
+### API Versioning & Change Management
 
 **Track API changes over time**:
 ```bash
@@ -406,7 +406,7 @@ jobs:
 
 ## Common Pitfalls (And How to Avoid Them)
 
-### 1. Spec Gets Outdated
+### Spec Gets Outdated
 
 **Problem**: Code changes, spec doesn't.
 
@@ -415,7 +415,7 @@ jobs:
 - Validate in CI/CD
 - Make spec changes part of code review
 
-### 2. Too Much Detail, Too Early
+### Too Much Detail, Too Early
 
 **Problem**: Spending weeks perfecting the spec before writing code.
 
@@ -424,7 +424,7 @@ jobs:
 - Add detail as you go
 - Spec should enable work, not block it
 
-### 3. Not Using the Spec
+### Not Using the Spec
 
 **Problem**: Spec exists but no one uses it.
 
@@ -434,7 +434,7 @@ jobs:
 - Use it for client generation
 - If it's not useful, simplify it
 
-### 4. Inconsistent Naming
+### Inconsistent Naming
 
 **Problem**: Endpoints named inconsistently (some camelCase, some snake_case).
 

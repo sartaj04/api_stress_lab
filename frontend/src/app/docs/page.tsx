@@ -156,9 +156,19 @@ export default function DocsPage() {
                         </div>
 
                         <h3 className="text-xl font-semibold text-white mb-3 mt-8">Need Help?</h3>
-                        <p className="text-white/50 leading-relaxed mb-6">
+                        <p className="text-white/50 leading-relaxed mb-4">
                             If you need assistance or have questions, feel free to reach out. We&apos;re here to help you find your API&apos;s breaking point before your users do.
                         </p>
+                        <a
+                            href="mailto:contact@apistresslab.com"
+                            className="inline-flex items-center gap-2 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 hover:text-emerald-300 border border-emerald-500/30 hover:border-emerald-500/50 font-medium px-5 py-2.5 rounded-lg transition text-sm"
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                                <polyline points="22,6 12,13 2,6" />
+                            </svg>
+                            Contact Support
+                        </a>
                     </div>
                 </div>
             </div>

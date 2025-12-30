@@ -23,7 +23,7 @@ In this guide, we'll cover the 5 most common performance bottlenecks that kill s
 
 Let's dive in.
 
-## Bottleneck #1: The N+1 Query Problem
+## Bottleneck 1: The N+1 Query Problem
 
 **Symptom**: API response time increases linearly with the amount of data.
 
@@ -141,7 +141,7 @@ Run a load test and watch database query count. If it scales linearly with traff
 
 ---
 
-## Bottleneck #2: Missing Database Indexes
+## Bottleneck 2: Missing Database Indexes
 
 **Symptom**: Queries that were fast with 1,000 rows become slow with 100,000 rows.
 
@@ -236,7 +236,7 @@ CREATE INDEX idx_posts_user_status ON posts(user_id, status);
 
 ---
 
-## Bottleneck #3: Database Connection Pool Exhaustion
+## Bottleneck 3: Database Connection Pool Exhaustion
 
 **Symptom**: API works fine, then suddenly all requests start failing with "connection pool exhausted" or timeout errors.
 
@@ -348,7 +348,7 @@ if (pool.waitingCount > 0) {
 
 ---
 
-## Bottleneck #4: Memory Leaks
+## Bottleneck 4: Memory Leaks
 
 **Symptom**: API starts fast, gets progressively slower, eventually crashes. Restarting fixes it temporarily.
 
@@ -496,7 +496,7 @@ If memory usage grows continuously → memory leak
 
 ---
 
-## Bottleneck #5: Synchronous External API Calls
+## Bottleneck 5: Synchronous External API Calls
 
 **Symptom**: Your API response time mirrors external API latency, even though your code is fast.
 
@@ -508,7 +508,7 @@ If memory usage grows continuously → memory leak
 // BAD - Sequential (slow) ❌
 app.post('/signup', async (req, res) => {
   // 1. Create user (50ms)
-  const user = await db.create User(req.body);
+  const user = await db.createUser(req.body);
 
   // 2. Send welcome email (300ms) - BLOCKS
   await sendEmail(user.email, 'Welcome!');
@@ -585,7 +585,7 @@ queue.process('create-stripe-customer', async (job) => {
 
 ## Bonus: Quick Wins for Immediate Performance Gains
 
-### 1. Add Response Compression
+### Add Response Compression
 
 ```javascript
 const compression = require('compression');
@@ -595,7 +595,7 @@ app.use(compression());
 // 500KB response → 100KB compressed
 ```
 
-### 2. Enable HTTP/2
+### Enable HTTP/2
 
 ```javascript
 const http2 = require('http2');
@@ -609,7 +609,7 @@ const server = http2.createSecureServer({
 // 40-50% faster than HTTP/1.1
 ```
 
-### 3. Add Database Query Caching
+### Add Database Query Caching
 
 ```javascript
 const redis = require('redis');
@@ -632,7 +632,7 @@ async function getUser(id) {
 // 100x faster for cached data
 ```
 
-### 4. Implement Rate Limiting
+### Implement Rate Limiting
 
 ```javascript
 const rateLimit = require('express-rate-limit');
@@ -651,14 +651,14 @@ app.use('/api/', limiter);
 
 ## How to Prevent Bottlenecks
 
-### 1. Load Test Regularly
+### Load Test Regularly
 
 Don't wait for production issues:
 - Load test before every major release
 - Stress test monthly
 - Soak test quarterly (find memory leaks)
 
-### 2. Monitor Key Metrics
+### Monitor Key Metrics
 
 Set up alerts for:
 - Response time P95 > 500ms
@@ -667,7 +667,7 @@ Set up alerts for:
 - Memory usage growth > 10% per hour
 - CPU usage > 70%
 
-### 3. Code Review Checklist
+### Code Review Checklist
 
 Before merging:
 - [ ] No N+1 queries (check for loops with queries)
@@ -676,7 +676,7 @@ Before merging:
 - [ ] Caches have size limits
 - [ ] Event listeners are cleaned up
 
-### 4. Use APM Tools
+### Use APM Tools
 
 Tools like New Relic, Datadog, or Sentry automatically detect:
 - N+1 queries

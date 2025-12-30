@@ -64,12 +64,14 @@ export async function getAllPosts(): Promise<BlogPost[]> {
 export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
   try {
     const filePath = path.join(contentDirectory, `${slug}.mdx`)
+
+    if (!fs.existsSync(filePath)) {
+      return null
+    }
+
     const fileContent = fs.readFileSync(filePath, 'utf8')
     const { data, content } = matter(fileContent)
     const stats = readingTime(content)
-
-    // Dynamically import MDX content
-    const { default: MDXContent } = await import(`@/content/blog/${slug}.mdx`)
 
     return {
       slug,
@@ -87,9 +89,10 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
       keywords: data.keywords,
       readTime: stats.text,
       ogImage: data.ogImage,
-      content: MDXContent,
+      content: content,
     }
   } catch (error) {
+    console.error('Error loading blog post:', error)
     return null
   }
 }

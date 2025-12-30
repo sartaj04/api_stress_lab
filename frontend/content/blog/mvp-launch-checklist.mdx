@@ -108,7 +108,7 @@ Let's make sure this doesn't happen to you.
 // Can your API handle minimal load?
 - Users: 3-5 concurrent
 - Duration: 60 seconds
-- Expected: 100% success rate, <500ms response time
+- Expected: 100% success rate, under 500ms response time
 ```
 
 #### Load Test (Expected Traffic)
@@ -116,7 +116,7 @@ Let's make sure this doesn't happen to you.
 // Can you handle your launch day traffic?
 - Users: Your expected peak × 1.5
 - Duration: 15-30 minutes
-- Expected: <1% errors, <500ms P95 latency
+- Expected: under 1% errors, under 500ms P95 latency
 ```
 
 #### Stress Test (Breaking Point)
@@ -705,7 +705,7 @@ Issue detected →
   │   └─ YES → Fix within 1 hour or rollback
   │   └─ NO → Continue
   │
-  └─ Can you fix in <15 minutes?
+  └─ Can you fix in under 15 minutes?
       └─ YES → Fix and deploy
       └─ NO → Rollback, fix properly, redeploy
 ```

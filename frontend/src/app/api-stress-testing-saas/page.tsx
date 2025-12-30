@@ -27,6 +27,9 @@ export default function ApiStressTestingSaas() {
                         <Link href="#features" className="text-white/60 hover:text-white text-sm transition">
                             Features
                         </Link>
+                        <Link href="/blog" className="text-white/60 hover:text-white text-sm transition">
+                            Blog
+                        </Link>
                         <Link href="/pricing" className="text-white/60 hover:text-white text-sm transition">
                             Pricing
                         </Link>
@@ -81,6 +84,13 @@ export default function ApiStressTestingSaas() {
                                 onClick={() => setMobileMenuOpen(false)}
                             >
                                 Features
+                            </Link>
+                            <Link
+                                href="/blog"
+                                className="block text-white/60 hover:text-white text-sm transition py-2"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                Blog
                             </Link>
                             <Link
                                 href="/pricing"
@@ -497,6 +507,15 @@ export default function ApiStressTestingSaas() {
                                 <div className="text-white text-sm font-medium">Testing methodology</div>
                                 <div className="text-white/40 text-xs">Load vs stress testing</div>
                             </div>
+                        </Link>
+                    </div>
+
+                    <div className="mt-8 text-center">
+                        <Link href="/docs/getting-started" className="inline-flex items-center gap-2 text-emerald-400 hover:text-emerald-300 font-medium text-sm transition">
+                            Read the Getting Started Guide
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M5 12h14M12 5l7 7-7 7" />
+                            </svg>
                         </Link>
                     </div>
                 </div>

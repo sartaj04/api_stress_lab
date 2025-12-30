@@ -4,6 +4,9 @@ import { notFound } from 'next/navigation'
 import { getAllPosts, getPostBySlug } from '@/lib/blog'
 import Logo from '@/components/Logo'
 import { BlogPostSchema } from '@/components/StructuredData'
+import { MDXRemote } from 'next-mdx-remote/rsc'
+import rehypePrettyCode from 'rehype-pretty-code'
+import remarkGfm from 'remark-gfm'
 
 export async function generateStaticParams() {
   const posts = await getAllPosts()
@@ -51,8 +54,6 @@ export default async function BlogPost({ params }: { params: { slug: string } })
   if (!post) {
     notFound()
   }
-
-  const MDXContent = post.content
 
   return (
     <main className="min-h-screen" style={{ background: '#111113' }}>
@@ -116,7 +117,15 @@ export default async function BlogPost({ params }: { params: { slug: string } })
             prose-li:marker:text-emerald-400
             prose-blockquote:border-l-emerald-400 prose-blockquote:text-white/60
           ">
-            <MDXContent />
+            <MDXRemote
+              source={post.content}
+              options={{
+                mdxOptions: {
+                  remarkPlugins: [remarkGfm],
+                  rehypePlugins: [[rehypePrettyCode, { theme: 'github-dark' }]],
+                },
+              }}
+            />
           </div>
 
           <footer className="mt-16 pt-8 border-t border-white/[0.08]">

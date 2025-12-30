@@ -45,7 +45,7 @@ You don't need enterprise-grade load testing infrastructure. You need to answer 
 
 Let's look at how to answer each one.
 
-## Step 1: Understand Your Expected Traffic
+## Understand Your Expected Traffic
 
 Before you test, you need a realistic traffic estimate. Here's how to calculate it:
 
@@ -73,7 +73,7 @@ If you're not launching on a platform, estimate based on:
 
 **Rule of thumb**: Plan for 3-5x your estimate. Traffic spikes are unpredictable.
 
-## Step 2: Set Up Your Testing Environment
+## Set Up Your Testing Environment
 
 ### What to Test Against
 
@@ -100,11 +100,11 @@ You have three options:
 - Cloud platforms: 2-4 hours to configure
 - OpenAPI tools: 5-10 minutes to upload spec and run
 
-## Step 3: Run the Right Test Scenarios
+## Run the Right Test Scenarios
 
 Most founders only run one type of test (if any). You need four:
 
-### 1. Smoke Test (Health Check)
+### Smoke Test (Health Check)
 
 **What it tests**: Can your API handle minimal load?
 
@@ -120,7 +120,7 @@ Most founders only run one type of test (if any). You need four:
 
 **If this fails**: Fix before any other testing. Your API has basic issues.
 
-### 2. Ramp Test (Find Breaking Point)
+### Ramp Test (Find Breaking Point)
 
 **What it tests**: Where does your API start to degrade?
 
@@ -137,14 +137,14 @@ Most founders only run one type of test (if any). You need four:
 
 **Example result**:
 ```
-Users 1-100: ✅ <200ms avg latency
+Users 1-100: ✅ under 200ms avg latency
 Users 100-150: ⚠️ 300ms avg latency
 Users 150+: ❌ 1200ms avg latency, 5% errors
 ```
 
 **Breaking point**: 150 concurrent users
 
-### 3. Spike Test (Traffic Surge)
+### Spike Test (Traffic Surge)
 
 **What it tests**: Can your API handle sudden traffic bursts?
 
@@ -160,7 +160,7 @@ Users 150+: ❌ 1200ms avg latency, 5% errors
 
 **Real-world scenario**: Someone tweets about you, or you hit front page of HN.
 
-### 4. Chaos Test (Resilience)
+### Chaos Test (Resilience)
 
 **What it tests**: How does your API handle failures?
 
@@ -175,19 +175,19 @@ Users 150+: ❌ 1200ms avg latency, 5% errors
 - Circuit breakers engage
 - System recovers automatically
 
-## Step 4: Interpret Your Results
+## Interpret Your Results
 
 ### Key Metrics to Track
 
 1. **P95 Latency**: 95% of requests should be under this time
-   - ✅ Good: <500ms
+   - ✅ Good: under 500ms
    - ⚠️ Acceptable: 500ms-1s
-   - ❌ Bad: >1s
+   - ❌ Bad: over 1s
 
 2. **Error Rate**:
-   - ✅ Good: <0.1%
+   - ✅ Good: under 0.1%
    - ⚠️ Acceptable: 0.1-1%
-   - ❌ Bad: >1%
+   - ❌ Bad: over 1%
 
 3. **Throughput (Requests/second)**:
    - Compare to your expected peak traffic
@@ -200,7 +200,7 @@ Users 150+: ❌ 1200ms avg latency, 5% errors
 
 ### Common Bottlenecks and Fixes
 
-#### 1. Database Connection Pool Exhausted
+#### Database Connection Pool Exhausted
 
 **Symptom**: Errors spike, "no connections available"
 
@@ -214,7 +214,7 @@ pool.max = 50  // Match your expected concurrency
 pool.min = 10  // Keep warm connections
 ```
 
-#### 2. N+1 Query Problem
+#### N+1 Query Problem
 
 **Symptom**: Latency increases linearly with data
 
@@ -230,7 +230,7 @@ users.forEach(user => {
 users = await db.users.include('posts').all()
 ```
 
-#### 3. Missing Indexes
+#### Missing Indexes
 
 **Symptom**: Slow queries, high database CPU
 
@@ -245,7 +245,7 @@ CREATE INDEX idx_users_email ON users(email);
 SELECT * FROM users WHERE email = 'test@example.com';  -- 5ms
 ```
 
-#### 4. Memory Leaks
+#### Memory Leaks
 
 **Symptom**: Memory usage grows, never decreases
 
@@ -254,7 +254,7 @@ SELECT * FROM users WHERE email = 'test@example.com';  -- 5ms
 - Large objects not being garbage collected
 - In-memory caches without size limits
 
-#### 5. Synchronous External API Calls
+#### Synchronous External API Calls
 
 **Symptom**: Response time matches external API latency
 
@@ -276,7 +276,7 @@ const [userProfile, userPosts, userComments] = await Promise.all([
 // Total: 300ms
 ```
 
-## Step 5: Build a Pre-Launch Checklist
+## Build a Pre-Launch Checklist
 
 Here's a checklist you can use 48 hours before launch:
 
@@ -313,31 +313,31 @@ Here's a checklist you can use 48 hours before launch:
 
 ## Common Mistakes Founders Make
 
-### 1. Testing with Empty Database
+### Testing with Empty Database
 
 **Why it's bad**: Your queries will be fast with 100 rows, slow with 1M rows.
 
 **Solution**: Seed your test database with realistic data volumes.
 
-### 2. Testing Only Happy Paths
+### Testing Only Happy Paths
 
 **Why it's bad**: Real users trigger edge cases and error paths.
 
 **Solution**: Include invalid inputs, failed authentications, and error scenarios in tests.
 
-### 3. Testing Once and Forgetting
+### Testing Once and Forgetting
 
 **Why it's bad**: Code changes affect performance.
 
 **Solution**: Re-test after major features or dependency updates.
 
-### 4. Ignoring External Dependencies
+### Ignoring External Dependencies
 
 **Why it's bad**: Third-party APIs can become bottlenecks.
 
 **Solution**: Test with real external APIs, add timeouts and fallbacks.
 
-### 5. Testing in the Wrong Region
+### Testing in the Wrong Region
 
 **Why it's bad**: Latency matters. US-based test against EU database = misleading results.
 

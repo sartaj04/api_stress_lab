@@ -423,7 +423,7 @@ export default function ApiLoadTestingTools() {
                     </div>
 
                     {/* OpenAPI Generation CTA */}
-                    <div className="mt-12 text-center">
+                    <div className="mt-12 text-center space-y-4">
                         <Link
                             href="/docs/openapi-generation"
                             className="inline-flex items-center gap-2 bg-white/[0.04] hover:bg-white/[0.08] text-white/80 hover:text-white border border-white/[0.08] hover:border-white/[0.15] font-medium px-5 py-2.5 rounded-lg transition text-sm"
@@ -437,6 +437,14 @@ export default function ApiLoadTestingTools() {
                             </svg>
                             How to generate an OpenAPI spec
                         </Link>
+                        <div>
+                            <Link href="/docs/getting-started" className="inline-flex items-center gap-2 text-emerald-400 hover:text-emerald-300 font-medium text-sm transition">
+                                Read the Getting Started Guide
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M5 12h14M12 5l7 7-7 7" />
+                                </svg>
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </section>

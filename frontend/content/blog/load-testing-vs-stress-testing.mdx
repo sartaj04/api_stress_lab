@@ -56,9 +56,9 @@ Load test: 20 concurrent users for 15 minutes
 ```
 
 **What success looks like**:
-- ✅ Response time: <500ms (P95)
-- ✅ Error rate: <0.1%
-- ✅ CPU usage: <60%
+- ✅ Response time: under 500ms (P95)
+- ✅ Error rate: under 0.1%
+- ✅ CPU usage: under 60%
 - ✅ Memory: Stable, no leaks
 
 **When to run it**: Before every major release, weekly for production APIs
@@ -131,7 +131,7 @@ Performance Testing (umbrella)
 
 ## Deep Dive: The 4 Essential Test Types
 
-### 1. Load Testing (Sustained Expected Traffic)
+### Load Testing (Sustained Expected Traffic)
 
 **Purpose**: Verify your API can handle normal production workload.
 
@@ -176,7 +176,7 @@ export default function() {
 
 ---
 
-### 2. Stress Testing (Find the Breaking Point)
+### Stress Testing (Find the Breaking Point)
 
 **Purpose**: Discover your system's limits and failure modes.
 
@@ -225,7 +225,7 @@ export default function() {
 
 ---
 
-### 3. Spike Testing (Sudden Traffic Bursts)
+### Spike Testing (Sudden Traffic Bursts)
 
 **Purpose**: Test how your system handles sudden, dramatic traffic increases.
 
@@ -261,7 +261,7 @@ export let options = {
 
 ---
 
-### 4. Soak Testing (Long-Duration Stability)
+### Soak Testing (Long-Duration Stability)
 
 **Purpose**: Find issues that only appear after extended runtime (memory leaks, disk space, log file growth).
 
