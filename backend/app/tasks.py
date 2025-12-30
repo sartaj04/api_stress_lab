@@ -251,7 +251,7 @@ def run_load_test(self, run_id: int):
                                 "completed_tests": completed_count,
                                 "total_tests": total_count
                             },
-                            timeout=10.0
+                            timeout=90.0  
                         )
                         response.raise_for_status()
                         logger.info(f"Email API call successful for {user.email}")
@@ -311,7 +311,7 @@ def run_load_test(self, run_id: int):
                                     "completed_tests": completed_count,
                                     "total_tests": total_count
                                 },
-                                timeout=10.0
+                                timeout=90.0  
                             )
                             response.raise_for_status()
                             logger.info(f"Email API call successful for {user.email}")
