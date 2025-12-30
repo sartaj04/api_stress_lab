@@ -210,3 +210,105 @@ def send_suite_completion_email(email: str, project_name: str, suite_id: str, su
         logger.error(f"Failed to send suite completion email to {email}: {str(e)}")
         return False
 
+
+def send_admin_test_queued_notification(project_name: str, user_email: str, test_type: str) -> bool:
+    """
+    Send a notification to admin when a test is queued (to start local worker).
+
+    Args:
+        project_name: Name of the project
+        user_email: Email of user who queued the test
+        test_type: Type of test (e.g., "Full Suite", "Smoke Test", etc.)
+
+    Returns:
+        True if email was sent successfully, False otherwise
+    """
+    # If email is not configured, log and return False
+    if not settings.smtp_enabled:
+        logger.warning(f"Email not configured. Would send admin notification for test queued")
+        return False
+
+    admin_email = settings.smtp_from_email
+
+    try:
+        # Create message
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = f"⚡ Test Queued - Start Docker Worker | API Stress Lab"
+        msg["From"] = settings.smtp_from_email
+        msg["To"] = admin_email
+
+        # Create HTML email body
+        html_body = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background: #ef4444; padding: 30px; border-radius: 8px; margin-bottom: 20px;">
+                <h1 style="color: #fff; margin: 0; font-size: 24px;">⚡ Action Required</h1>
+            </div>
+
+            <div style="background: #fff; padding: 30px; border-radius: 8px; border: 1px solid #e0e0e0;">
+                <h2 style="color: #333; margin-top: 0;">Test Queued - Start Worker</h2>
+                <p>A test has been queued and needs your local worker to process it.</p>
+
+                <div style="background: #fef3c7; padding: 20px; border-left: 4px solid #f59e0b; border-radius: 6px; margin: 20px 0;">
+                    <p style="margin: 0; color: #92400e; font-weight: 600;">Project: {project_name}</p>
+                    <p style="margin: 10px 0 0 0; color: #92400e;">User: {user_email}</p>
+                    <p style="margin: 10px 0 0 0; color: #92400e;">Test Type: {test_type}</p>
+                </div>
+
+                <div style="background: #f5f5f5; padding: 20px; border-radius: 6px; margin: 20px 0;">
+                    <p style="margin: 0; font-family: monospace; font-size: 14px; color: #333;">
+                        <strong>Run this command:</strong><br><br>
+                        cd api_stress_lab<br>
+                        docker-compose up worker
+                    </p>
+                </div>
+
+                <p style="color: #999; font-size: 12px; margin-top: 30px; border-top: 1px solid #e0e0e0; padding-top: 20px;">
+                    This is an automated notification sent when tests are queued in production.
+                </p>
+            </div>
+        </body>
+        </html>
+        """
+
+        # Create plain text version
+        text_body = f"""
+        ⚡ Test Queued - Start Docker Worker
+
+        A test has been queued and needs your local worker to process it.
+
+        Project: {project_name}
+        User: {user_email}
+        Test Type: {test_type}
+
+        Run this command:
+        cd api_stress_lab
+        docker-compose up worker
+
+        This is an automated notification sent when tests are queued in production.
+        """
+
+        # Attach both versions
+        msg.attach(MIMEText(text_body, "plain"))
+        msg.attach(MIMEText(html_body, "html"))
+
+        # Send email
+        with smtplib.SMTP(settings.smtp_host, settings.smtp_port) as server:
+            if settings.smtp_use_tls:
+                server.starttls()
+            if settings.smtp_username and settings.smtp_password:
+                server.login(settings.smtp_username, settings.smtp_password)
+            server.send_message(msg)
+
+        logger.info(f"Admin notification sent for test queued: {project_name}")
+        return True
+
+    except Exception as e:
+        logger.error(f"Failed to send admin notification: {str(e)}")
+        return False
+

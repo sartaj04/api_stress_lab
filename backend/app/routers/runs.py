@@ -9,6 +9,7 @@ from ..auth import get_current_user, check_user_credits, get_default_limits
 from ..tasks import run_load_test
 from ..report_analyzer import analyze_results
 from ..llm_analyzer import analyze_results_with_llm
+from ..email import send_admin_test_queued_notification
 
 router = APIRouter(prefix="/runs", tags=["runs"])
 
@@ -65,10 +66,18 @@ def create_run(
     db.add(run)
     db.commit()
     db.refresh(run)
-    
+
     # Enqueue Celery task
     run_load_test.delay(run.id)
-    
+
+    # Send admin notification to start worker
+    test_profile = data.config.profile if hasattr(data.config, 'profile') else "Test"
+    send_admin_test_queued_notification(
+        project_name=project.name,
+        user_email=current_user.email,
+        test_type=f"{test_profile.capitalize()} Test"
+    )
+
     return run
 
 
@@ -362,7 +371,14 @@ def run_full_suite(
     # Enqueue all tests - they will run sequentially
     for run_id in run_ids:
         run_load_test.delay(run_id)
-    
+
+    # Send admin notification to start worker
+    send_admin_test_queued_notification(
+        project_name=project.name,
+        user_email=current_user.email,
+        test_type="Full Suite (4 tests)"
+    )
+
     return {
         "suite_id": suite_id,
         "run_ids": run_ids,
