@@ -1,7 +1,33 @@
-'use client';
-
+import { Metadata } from 'next';
 import Link from 'next/link';
 import Logo from '@/components/Logo';
+
+export const metadata: Metadata = {
+    title: 'Documentation - API Load Testing Guide',
+    description: 'Complete documentation for API Stress Lab. Learn how to run stress tests, interpret results, and optimize your API performance. Step-by-step guides and best practices.',
+    keywords: [
+        'API testing documentation',
+        'load testing guide',
+        'stress testing tutorial',
+        'API performance optimization',
+        'API testing best practices',
+        'performance testing guide',
+    ],
+    alternates: {
+        canonical: 'https://apistresslab.com/docs',
+    },
+    openGraph: {
+        title: 'Documentation - API Load Testing Guide',
+        description: 'Complete guide to API stress testing with API Stress Lab.',
+        url: 'https://apistresslab.com/docs',
+        type: 'website',
+    },
+    twitter: {
+        card: 'summary_large_image',
+        title: 'Documentation - API Load Testing Guide',
+        description: 'Complete guide to API stress testing with API Stress Lab.',
+    },
+};
 
 export default function DocsPage() {
     return (

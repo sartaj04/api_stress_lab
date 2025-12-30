@@ -1,0 +1,523 @@
+---
+title: "API Load Testing vs Stress Testing vs Performance Testing: What's the Difference?"
+description: "Understand the difference between load testing, stress testing, and performance testing. Learn which type of testing your API needs and when to use each."
+date: "2025-01-10"
+author: "API Stress Lab Team"
+authorTitle: "Engineering"
+category: "Tutorials"
+keywords: "load testing vs stress testing, API performance testing, types of API testing, load testing explained, stress testing explained, performance testing guide"
+ogImage: "/blog/load-testing-vs-stress-testing.png"
+---
+
+If you're building an API, you've probably heard terms like "load testing," "stress testing," and "performance testing" thrown around. But what do they actually mean? And more importantly, which one do you need?
+
+**Short answer**: You need all three. But they test different things.
+
+In this guide, we'll break down exactly what each type of testing does, when to use it, and how to run effective tests without getting overwhelmed by jargon.
+
+## The Confusion: Why These Terms Matter
+
+Imagine you're about to launch your API on Product Hunt. You tell your co-founder: "We should load test before launch."
+
+**They might think you mean**:
+- Testing if the API works under normal traffic ✅
+- Finding the maximum capacity before crashes ❌
+- Testing overall performance ⚠️
+
+See the problem? "Load testing" can mean different things to different people. Using the wrong test type means you might miss critical issues.
+
+**Real example**: A startup "load tested" their API with 100 concurrent users (their expected traffic). Everything looked good. They launched, got 500 concurrent users, and crashed within 5 minutes.
+
+**What went wrong**: They ran a load test, but they needed a stress test to find their actual breaking point.
+
+## The Three Types of Testing (And What They Actually Test)
+
+### Load Testing: Can You Handle Expected Traffic?
+
+**Definition**: Testing your API under expected, realistic workload conditions.
+
+**What it answers**:
+- Can my API handle normal production traffic?
+- What's the average response time under typical load?
+- Are there any errors under normal conditions?
+
+**Typical setup**:
+- Number of users: Your expected peak traffic (e.g., 200 concurrent users)
+- Duration: 10-30 minutes (sustained load)
+- Pattern: Steady, realistic traffic
+
+**Example scenario**:
+```
+You expect 1,000 daily active users
+Peak hour: 20% of daily users = 200 users
+Concurrent users during peak: 10% = 20 users
+
+Load test: 20 concurrent users for 15 minutes
+```
+
+**What success looks like**:
+- ✅ Response time: <500ms (P95)
+- ✅ Error rate: <0.1%
+- ✅ CPU usage: <60%
+- ✅ Memory: Stable, no leaks
+
+**When to run it**: Before every major release, weekly for production APIs
+
+---
+
+### Stress Testing: Where Does Everything Break?
+
+**Definition**: Pushing your API beyond normal limits to find the breaking point.
+
+**What it answers**:
+- What's my maximum capacity before the system crashes?
+- What fails first - database, CPU, memory, or network?
+- How does the system behave when overloaded?
+- Does it recover gracefully?
+
+**Typical setup**:
+- Number of users: Start low, increase until breaking (e.g., 10 → 500+ users)
+- Duration: Gradual ramp over 10-20 minutes
+- Pattern: Increasing load until failure
+
+**Example scenario**:
+```
+Ramp test:
+0-2 min: 10 users
+2-4 min: 50 users
+4-6 min: 100 users
+6-8 min: 200 users
+8-10 min: 400 users
+10-12 min: 800 users (crashes at 650)
+
+Result: Breaking point is ~650 concurrent users
+```
+
+**What success looks like**:
+- ✅ You identified a clear breaking point
+- ✅ You know what component fails first
+- ✅ System recovers after load decreases
+- ✅ No data corruption or inconsistencies
+
+**When to run it**: Before major launches, after infrastructure changes
+
+---
+
+### Performance Testing: The Umbrella Term
+
+**Definition**: Broad category that includes load testing, stress testing, and other performance-related tests.
+
+**What it includes**:
+1. **Load Testing** (covered above)
+2. **Stress Testing** (covered above)
+3. **Spike Testing**: Sudden traffic bursts
+4. **Soak Testing**: Long-duration stability
+5. **Scalability Testing**: How well does it scale?
+6. **Volume Testing**: Large data volumes
+
+**Think of it like this**:
+```
+Performance Testing (umbrella)
+├── Load Testing (expected traffic)
+├── Stress Testing (beyond limits)
+├── Spike Testing (sudden bursts)
+├── Soak Testing (long duration)
+└── Others...
+```
+
+**When people say "performance testing"**: They usually mean load testing, but clarify which type they actually need.
+
+---
+
+## Deep Dive: The 4 Essential Test Types
+
+### 1. Load Testing (Sustained Expected Traffic)
+
+**Purpose**: Verify your API can handle normal production workload.
+
+**When to use**:
+- Before every major release
+- After infrastructure changes
+- Weekly for production systems
+
+**How to run it**:
+
+```javascript
+// Example with k6
+import http from 'k6/http';
+import { check } from 'k6';
+
+export let options = {
+  vus: 20, // 20 concurrent users (your expected peak)
+  duration: '15m', // Sustained for 15 minutes
+};
+
+export default function() {
+  let response = http.get('https://api.example.com/users');
+
+  check(response, {
+    'status is 200': (r) => r.status === 200,
+    'response time < 500ms': (r) => r.timings.duration < 500,
+  });
+}
+```
+
+**What to monitor**:
+- P50, P95, P99 latency
+- Error rate
+- Requests per second
+- Resource utilization (CPU, memory, DB connections)
+
+**Common findings**:
+- Database connection pool too small
+- Missing indexes on queries
+- No caching for frequently accessed data
+- Inefficient API endpoint logic
+
+---
+
+### 2. Stress Testing (Find the Breaking Point)
+
+**Purpose**: Discover your system's limits and failure modes.
+
+**When to use**:
+- Before major launches
+- Before expected traffic spikes (e.g., Black Friday)
+- After major infrastructure upgrades
+
+**How to run it**:
+
+```javascript
+// Ramp test to find breaking point
+export let options = {
+  stages: [
+    { duration: '2m', target: 50 },   // Ramp up to 50 users
+    { duration: '2m', target: 100 },  // Then 100
+    { duration: '2m', target: 200 },  // Then 200
+    { duration: '2m', target: 400 },  // Then 400
+    { duration: '2m', target: 800 },  // Then 800 (likely breaks)
+    { duration: '2m', target: 0 },    // Ramp down (test recovery)
+  ],
+};
+
+export default function() {
+  let response = http.get('https://api.example.com/users');
+
+  check(response, {
+    'status is 200': (r) => r.status === 200,
+  });
+
+  sleep(1); // Think time between requests
+}
+```
+
+**What to monitor**:
+- At what user count do errors spike?
+- What's the first component to fail?
+- Does the system recover when load decreases?
+- Are there cascading failures?
+
+**Common findings**:
+- Database becomes the bottleneck at 300 users
+- CPU maxes out at 500 concurrent requests
+- Memory leak causes crash after sustained load
+- No graceful degradation (complete failure instead)
+
+---
+
+### 3. Spike Testing (Sudden Traffic Bursts)
+
+**Purpose**: Test how your system handles sudden, dramatic traffic increases.
+
+**When to use**:
+- Before viral marketing campaigns
+- Before PR launches (Product Hunt, TechCrunch)
+- If you have unpredictable traffic patterns
+
+**How to run it**:
+
+```javascript
+export let options = {
+  stages: [
+    { duration: '1m', target: 10 },    // Normal traffic
+    { duration: '30s', target: 500 },  // Sudden spike!
+    { duration: '2m', target: 500 },   // Hold the spike
+    { duration: '1m', target: 10 },    // Back to normal
+  ],
+};
+```
+
+**What to monitor**:
+- Does autoscaling trigger in time?
+- Are there cold start delays?
+- Do rate limiters engage properly?
+- Does the database connection pool expand?
+
+**Common findings**:
+- Autoscaling takes 2-3 minutes (too slow)
+- Database connection pool can't expand fast enough
+- CDN cache not effective for API responses
+- No rate limiting = complete crash
+
+---
+
+### 4. Soak Testing (Long-Duration Stability)
+
+**Purpose**: Find issues that only appear after extended runtime (memory leaks, disk space, log file growth).
+
+**When to use**:
+- Before going to production
+- After major code refactors
+- If you've had mysterious crashes in production
+
+**How to run it**:
+
+```javascript
+export let options = {
+  vus: 50,          // Moderate concurrent users
+  duration: '4h',   // Run for hours (or days)
+};
+```
+
+**What to monitor**:
+- Memory usage over time (should be stable)
+- Disk usage (log files growing?)
+- Database connection leaks
+- File handle exhaustion
+
+**Common findings**:
+- Memory increases 100MB/hour (memory leak)
+- Log files fill disk after 6 hours
+- Database connections never released
+- Cache grows unbounded
+
+---
+
+## Which Test Do You Actually Need?
+
+### For a Pre-Launch Startup:
+
+**Must have**:
+1. **Load Test** - Can you handle your expected traffic?
+2. **Stress Test** - What's your safety margin?
+
+**Nice to have**:
+3. **Spike Test** - If you're launching on Product Hunt/HN
+
+**Skip** (for now):
+- Soak testing (unless you have history of crashes)
+- Volume testing (unless handling massive datasets)
+
+---
+
+### For a Production API:
+
+**Weekly**:
+- Load test with expected traffic
+
+**Monthly**:
+- Stress test to verify limits haven't changed
+
+**Before major releases**:
+- Full suite (load, stress, spike)
+
+**After incidents**:
+- Specific test type that would have caught the issue
+
+---
+
+## Real-World Testing Strategy
+
+### Scenario 1: E-commerce Startup Launching on Product Hunt
+
+**Expected traffic**: 5,000 visitors, 500 signups in 24 hours
+
+**Testing plan**:
+1. **Load test**: 50 concurrent users for 30 min ✅
+2. **Stress test**: Ramp from 10 → 500 users ✅
+3. **Spike test**: Jump from 10 → 200 users instantly ✅
+
+**Results**:
+- Load test: ✅ All good at 50 users
+- Stress test: ⚠️ Breaks at 180 users (database connections)
+- Spike test: ❌ Crashes on sudden spike (no rate limiting)
+
+**Fixes applied**:
+- Increased DB connection pool: 10 → 100
+- Added rate limiting: 100 req/min per IP
+- Enabled database read replicas
+- Added Redis caching
+
+**Re-test results**:
+- Stress test: ✅ Now handles 600+ users
+- Spike test: ✅ Gracefully handles spikes
+
+**Launch outcome**: Zero downtime, 847 signups in 24 hours
+
+---
+
+### Scenario 2: SaaS API in Production
+
+**Current traffic**: 200 concurrent users at peak
+
+**Testing plan** (quarterly):
+1. **Load test**: 200 users (current peak) ✅
+2. **Stress test**: Find new breaking point ✅
+3. **Soak test**: 100 users for 4 hours ✅
+
+**Results**:
+- Load test: ✅ No issues
+- Stress test: ⚠️ Breaking point now 400 users (was 600)
+- Soak test: ❌ Memory leak detected (+50MB/hour)
+
+**Root cause**: Recent feature added inefficient caching
+
+**Fix**: Optimize cache implementation
+
+---
+
+## Common Mistakes (And How to Avoid Them)
+
+### Mistake 1: Testing Only Happy Paths
+
+**Problem**: Real users trigger errors, edge cases, invalid inputs.
+
+**Fix**: Include negative test scenarios:
+```javascript
+// Don't just test valid requests
+http.get('/users/123');
+
+// Also test:
+http.get('/users/invalid');     // Invalid ID
+http.get('/users/999999');      // Non-existent user
+http.post('/users', { bad: data }); // Invalid payload
+```
+
+---
+
+### Mistake 2: Testing with Empty Database
+
+**Problem**: Query performance degrades with real data volumes.
+
+**Fix**: Seed test database with realistic data:
+- 1M+ rows for tables you query frequently
+- Realistic relationships and foreign keys
+- Representative data distributions
+
+---
+
+### Mistake 3: Forgetting External Dependencies
+
+**Problem**: Your API might be fast, but if it calls a slow external API, users see slow responses.
+
+**Fix**: Test with real external dependencies:
+```javascript
+// Monitor external API calls
+let response = http.get('/users'); // Calls external auth API
+
+check(response, {
+  'total time < 500ms': (r) => r.timings.duration < 500,
+  'external call time': (r) => console.log(r.timings),
+});
+```
+
+---
+
+### Mistake 4: Testing from the Wrong Region
+
+**Problem**: Testing from Virginia but users are in Europe = misleading latency.
+
+**Fix**: Test from regions where your users actually are.
+
+---
+
+### Mistake 5: Only Testing Once
+
+**Problem**: Code changes affect performance. Last month's test doesn't guarantee today's performance.
+
+**Fix**: Automate testing in CI/CD:
+- Load test on every release
+- Stress test weekly
+- Performance regression tests in CI
+
+---
+
+## Quick Reference Guide
+
+| Test Type | Purpose | Duration | Pattern | When to Run |
+|-----------|---------|----------|---------|-------------|
+| **Load** | Normal traffic | 10-30 min | Steady | Before every release |
+| **Stress** | Find limits | 10-20 min | Increasing | Before launches |
+| **Spike** | Sudden bursts | 5-10 min | Instant jump | Before viral campaigns |
+| **Soak** | Stability | 4-24 hours | Sustained | Before production, after refactors |
+
+---
+
+## Tools for Each Test Type
+
+### Free/Open Source:
+- **k6**: Best for scripting custom tests
+- **Apache JMeter**: GUI-based, steep learning curve
+- **Locust**: Python-based, good for complex scenarios
+
+### Paid/SaaS:
+- **Loader.io**: Simple, good for basic load tests
+- **BlazeMeter**: Enterprise-grade, expensive
+- **API Stress Lab**: OpenAPI-based, AI generates tests ← (biased, but easy)
+
+---
+
+## Action Plan: What to Do Right Now
+
+### If You Haven't Tested Yet:
+
+1. **Run a load test** with your expected peak traffic (30 minutes)
+2. **Run a stress test** to find your breaking point (20 minutes)
+3. **Document your limits**: "We can handle X concurrent users"
+4. **Set up monitoring**: Alert when approaching 70% of capacity
+
+### If You're Already Testing:
+
+1. **Add spike testing** to catch sudden burst issues
+2. **Run soak tests** quarterly to catch memory leaks
+3. **Automate** load tests in CI/CD
+4. **Re-test after** major infrastructure or code changes
+
+### If You're Overwhelmed:
+
+Start simple:
+1. Run a 15-minute load test with expected traffic
+2. If it passes, run a stress test to find limits
+3. That's it. You're 80% of the way there.
+
+---
+
+## Conclusion: Pick the Right Test
+
+**Load testing** tells you if you can handle normal traffic.
+**Stress testing** tells you your limits and what breaks first.
+**Performance testing** is the umbrella term for all of this.
+
+**For most startups**: Start with load testing and stress testing. That covers 90% of what you need.
+
+**Remember**: Testing once isn't enough. Make it part of your release process.
+
+---
+
+## Ready to Start Testing?
+
+API Stress Lab makes it simple:
+- Upload your OpenAPI spec
+- Choose load, stress, or spike test
+- Get results in 5 minutes
+
+No scripting required. Start with 50 free credits.
+
+[Start Testing Free →](/signup)
+
+---
+
+**Related Posts**:
+- [How to Test Your API Before Launch: Complete Guide](/blog/test-api-before-launch-guide)
+- [5 API Performance Bottlenecks That Kill Startups](/blog/api-performance-bottlenecks)
+- [The MVP Launch Checklist](/blog/mvp-launch-checklist)

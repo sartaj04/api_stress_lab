@@ -1,11 +1,73 @@
-'use client';
-
+import { Metadata } from 'next';
 import Link from 'next/link';
 import Logo from '@/components/Logo';
+import { HowToSchema } from '@/components/StructuredData';
+
+export const metadata: Metadata = {
+    title: 'Getting Started - Run Your First API Load Test in 5 Minutes',
+    description: 'Step-by-step guide to running your first API stress test. Upload your OpenAPI spec, generate AI-powered test scenarios, and discover your API breaking point in minutes.',
+    keywords: [
+        'API testing tutorial',
+        'getting started with load testing',
+        'first stress test',
+        'API testing for beginners',
+        'how to test API performance',
+        'OpenAPI load testing guide',
+    ],
+    alternates: {
+        canonical: 'https://apistresslab.com/docs/getting-started',
+    },
+    openGraph: {
+        title: 'Getting Started - Your First API Load Test',
+        description: 'Run your first API stress test in under 5 minutes.',
+        url: 'https://apistresslab.com/docs/getting-started',
+        type: 'article',
+    },
+    twitter: {
+        card: 'summary_large_image',
+        title: 'Getting Started - Your First API Load Test',
+        description: 'Run your first API stress test in under 5 minutes.',
+    },
+};
 
 export default function GettingStartedPage() {
+    const howToSteps = [
+        {
+            name: 'Sign Up and Claim Free Credits',
+            text: 'Create your account and claim 50 free credits to run your first tests at no cost. No credit card required.',
+        },
+        {
+            name: 'Create a Project',
+            text: 'Projects organize your API tests. Go to your Dashboard, click New Project, enter a name and set your API base URL.',
+        },
+        {
+            name: 'Configure API Settings',
+            text: 'Set your API base URL and authentication credentials. Supported auth types include Bearer Token, API Key, Basic Auth, and Custom Headers.',
+        },
+        {
+            name: 'Upload OpenAPI Specification',
+            text: 'Upload your OpenAPI spec (Swagger) file so the AI can analyze your endpoints and generate realistic test scenarios.',
+        },
+        {
+            name: 'Generate Test Scenarios',
+            text: 'Click Generate Scenarios and let the AI analyze your OpenAPI spec to create realistic test scenarios matching real-world usage patterns.',
+        },
+        {
+            name: 'Run Your First Test Suite',
+            text: 'Run a full test suite including Smoke, Ramp, Spike, and Chaos tests to thoroughly evaluate your API performance and resilience.',
+        },
+        {
+            name: 'Analyze Results',
+            text: 'Review comprehensive insights including performance metrics, AI analysis of breaking points and bottlenecks, and prioritized fix recommendations.',
+        },
+    ];
     return (
         <main className="min-h-screen" style={{ background: '#111113' }}>
+            <HowToSchema
+                name="How to Run Your First API Load Test"
+                description="Step-by-step guide to running your first stress test with API Stress Lab in under 5 minutes"
+                steps={howToSteps}
+            />
             {/* Navigation */}
             <nav className="nav fixed top-0 left-0 right-0 z-50">
                 <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">

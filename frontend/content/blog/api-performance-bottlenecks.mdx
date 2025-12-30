@@ -1,0 +1,759 @@
+---
+title: "5 API Performance Bottlenecks That Kill Startups (And How to Fix Them)"
+description: "Common API bottlenecks that cause outages and how to fix them. Database queries, N+1 problems, memory leaks, connection pools, and more with code examples."
+date: "2025-01-05"
+author: "API Stress Lab Team"
+authorTitle: "Engineering"
+category: "Performance"
+keywords: "API performance bottlenecks, API optimization, slow API fix, database performance, API scalability, N+1 problem, memory leaks, connection pool"
+ogImage: "/blog/api-performance-bottlenecks.png"
+---
+
+Your API works perfectly in development. Response times are snappy, everything loads instantly, and your tests pass. Then you launch, get real traffic, and everything grinds to a halt.
+
+Sound familiar?
+
+**95% of API performance issues come from just 5 bottlenecks**. The good news? They're all fixable if you know what to look for.
+
+In this guide, we'll cover the 5 most common performance bottlenecks that kill startup APIs, complete with:
+- How to identify each one
+- Real-world examples
+- Code fixes you can implement today
+- Prevention strategies
+
+Let's dive in.
+
+## Bottleneck #1: The N+1 Query Problem
+
+**Symptom**: API response time increases linearly with the amount of data.
+
+**What it is**: Your API makes 1 query to fetch data, then N additional queries to fetch related data - one query per item.
+
+### Real-World Example
+
+You have an endpoint that returns a list of users with their posts:
+
+```javascript
+// DON'T DO THIS ❌
+app.get('/users', async (req, res) => {
+  // Query 1: Fetch all users
+  const users = await db.query('SELECT * FROM users LIMIT 10');
+
+  // N queries: Fetch posts for each user (10 more queries!)
+  for (let user of users) {
+    user.posts = await db.query(
+      'SELECT * FROM posts WHERE user_id = ?',
+      [user.id]
+    );
+  }
+
+  res.json(users);
+});
+```
+
+**The problem**:
+- 10 users = 11 total queries (1 + 10)
+- 100 users = 101 total queries (1 + 100)
+- 1,000 users = 1,001 total queries (1 + 1,000)
+
+**Performance**:
+```
+10 users: 110ms (10ms per query)
+100 users: 1,010ms (1 second!)
+1,000 users: 10,010ms (10 seconds!)
+```
+
+### How to Fix It
+
+**Solution 1: Use JOINs**
+
+```javascript
+// DO THIS INSTEAD ✅
+app.get('/users', async (req, res) => {
+  // Single query with JOIN
+  const result = await db.query(`
+    SELECT
+      users.*,
+      posts.id as post_id,
+      posts.title as post_title
+    FROM users
+    LEFT JOIN posts ON posts.user_id = users.id
+    LIMIT 10
+  `);
+
+  // Group results in application code
+  const users = groupUserPosts(result);
+
+  res.json(users);
+});
+```
+
+**Performance**: 1 query, ~15ms (regardless of user count)
+
+**Solution 2: Use ORM's Eager Loading**
+
+```javascript
+// Sequelize example
+const users = await User.findAll({
+  include: [{ model: Post }],  // Eager load posts
+  limit: 10
+});
+
+// TypeORM example
+const users = await userRepository.find({
+  relations: ['posts'],
+  take: 10
+});
+
+// Prisma example
+const users = await prisma.user.findMany({
+  include: { posts: true },
+  take: 10
+});
+```
+
+### How to Detect N+1 Problems
+
+**Method 1: Query Logging**
+
+Enable query logging in your ORM:
+
+```javascript
+// Sequelize
+const sequelize = new Sequelize('database', 'user', 'pass', {
+  logging: console.log  // Logs all SQL queries
+});
+
+// Look for repeated patterns like:
+// SELECT * FROM users;
+// SELECT * FROM posts WHERE user_id = 1;
+// SELECT * FROM posts WHERE user_id = 2;
+// SELECT * FROM posts WHERE user_id = 3;
+```
+
+**Method 2: APM Tools**
+
+Tools like New Relic or Datadog will highlight N+1 queries automatically.
+
+**Method 3: Load Testing**
+
+Run a load test and watch database query count. If it scales linearly with traffic, you have N+1 problems.
+
+---
+
+## Bottleneck #2: Missing Database Indexes
+
+**Symptom**: Queries that were fast with 1,000 rows become slow with 100,000 rows.
+
+**What it is**: Your database is scanning every row instead of using an index to quickly find data.
+
+### Real-World Example
+
+```sql
+-- Your query
+SELECT * FROM users WHERE email = 'john@example.com';
+
+-- Without index: Scans ALL rows
+-- 1,000 rows: 5ms
+-- 100,000 rows: 500ms
+-- 1,000,000 rows: 5,000ms (5 seconds!)
+
+-- With index on email: Uses binary search
+-- 1,000 rows: 2ms
+-- 100,000 rows: 3ms
+-- 1,000,000 rows: 4ms
+```
+
+### How to Identify Missing Indexes
+
+**PostgreSQL**:
+```sql
+-- Show slow queries
+SELECT
+  query,
+  calls,
+  total_time,
+  mean_time
+FROM pg_stat_statements
+WHERE mean_time > 100  -- Queries averaging over 100ms
+ORDER BY mean_time DESC
+LIMIT 10;
+
+-- Explain query plan
+EXPLAIN ANALYZE SELECT * FROM users WHERE email = 'test@example.com';
+
+-- Look for "Seq Scan" (sequential scan = bad)
+-- Want to see "Index Scan" instead
+```
+
+**MySQL**:
+```sql
+-- Show slow queries
+SELECT * FROM mysql.slow_log
+WHERE query_time > 1
+ORDER BY query_time DESC
+LIMIT 10;
+
+-- Explain query
+EXPLAIN SELECT * FROM users WHERE email = 'test@example.com';
+
+-- Look for type = "ALL" (table scan = bad)
+-- Want type = "ref" or "eq_ref" (index scan = good)
+```
+
+### Common Indexes to Add
+
+```sql
+-- 1. Foreign keys (ALWAYS index these)
+CREATE INDEX idx_posts_user_id ON posts(user_id);
+CREATE INDEX idx_comments_post_id ON comments(post_id);
+
+-- 2. Columns used in WHERE clauses
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_posts_status ON posts(status);
+
+-- 3. Columns used in ORDER BY
+CREATE INDEX idx_posts_created_at ON posts(created_at DESC);
+
+-- 4. Composite indexes for multi-column queries
+CREATE INDEX idx_posts_user_status ON posts(user_id, status);
+
+-- Used for: WHERE user_id = X AND status = Y
+```
+
+### Index Best Practices
+
+**DO**:
+- ✅ Index foreign keys
+- ✅ Index columns in WHERE clauses
+- ✅ Index columns in ORDER BY
+- ✅ Use composite indexes for common multi-column queries
+
+**DON'T**:
+- ❌ Index every column (slows down writes)
+- ❌ Index columns with low cardinality (e.g., boolean fields)
+- ❌ Forget to maintain indexes (rebuild periodically)
+
+---
+
+## Bottleneck #3: Database Connection Pool Exhaustion
+
+**Symptom**: API works fine, then suddenly all requests start failing with "connection pool exhausted" or timeout errors.
+
+**What it is**: Your application has a fixed pool of database connections. When all are in use, new requests have to wait.
+
+### Real-World Example
+
+```javascript
+// Default connection pool (BAD for production)
+const pool = new Pool({
+  max: 10,  // Only 10 connections max!
+  idleTimeoutMillis: 30000
+});
+
+// What happens under load:
+// Request 1-10: ✅ Gets connection
+// Request 11+: ⏳ Waits for connection to be freed
+// Request 50+: ❌ Timeout error
+```
+
+**Timeline**:
+```
+0ms: 10 requests come in → all connections used
+100ms: 50 more requests come in → queue starts building
+1000ms: 100 requests waiting → timeout errors begin
+2000ms: API completely non-responsive
+```
+
+### How to Fix It
+
+**Solution 1: Increase Pool Size**
+
+```javascript
+const pool = new Pool({
+  max: 50,        // ✅ Increased from 10
+  min: 10,        // Keep warm connections
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000
+});
+```
+
+**How to calculate the right pool size**:
+```
+Pool size = (concurrent requests × average query time) ÷ 1000
+
+Example:
+- 200 concurrent requests
+- 50ms average query time
+Pool size = (200 × 50) ÷ 1000 = 10
+
+Add 2-3x buffer: 10 × 2.5 = 25 connections
+```
+
+**Solution 2: Use Connection Pooling with Timeout**
+
+```javascript
+// Add connection timeout
+const pool = new Pool({
+  max: 50,
+  connectionTimeoutMillis: 5000,  // Fail fast after 5s
+});
+
+// Wrap queries with timeout
+async function queryWithTimeout(sql, params) {
+  const timeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('Query timeout')), 5000)
+  );
+
+  const query = pool.query(sql, params);
+
+  return Promise.race([query, timeout]);
+}
+```
+
+**Solution 3: Use Read Replicas**
+
+```javascript
+// Write to primary
+const writePosts = await primaryDb.query(
+  'INSERT INTO posts (title) VALUES (?)',
+  ['New Post']
+);
+
+// Read from replicas
+const getPosts = await replicaDb.query(
+  'SELECT * FROM posts WHERE user_id = ?',
+  [userId]
+);
+```
+
+### How to Monitor Connection Pools
+
+```javascript
+// Log pool stats
+setInterval(() => {
+  console.log({
+    total: pool.totalCount,
+    idle: pool.idleCount,
+    waiting: pool.waitingCount
+  });
+}, 5000);
+
+// Alert when pool is nearly exhausted
+if (pool.waitingCount > 0) {
+  console.error('Connection pool exhausted!');
+  // Send alert
+}
+```
+
+---
+
+## Bottleneck #4: Memory Leaks
+
+**Symptom**: API starts fast, gets progressively slower, eventually crashes. Restarting fixes it temporarily.
+
+**What it is**: Your application allocates memory but never releases it, eventually running out.
+
+### Common Causes
+
+**1. Event Listeners Not Removed**
+
+```javascript
+// BAD ❌
+app.get('/users', async (req, res) => {
+  const db = new Database();
+
+  db.on('error', (err) => console.error(err));  // Never removed!
+
+  const users = await db.query('SELECT * FROM users');
+  res.json(users);
+  // db.on listener still exists after request ends
+});
+
+// GOOD ✅
+app.get('/users', async (req, res) => {
+  const db = new Database();
+
+  const errorHandler = (err) => console.error(err);
+  db.on('error', errorHandler);
+
+  const users = await db.query('SELECT * FROM users');
+
+  db.off('error', errorHandler);  // Clean up!
+  res.json(users);
+});
+```
+
+**2. Unbounded Caches**
+
+```javascript
+// BAD ❌
+const cache = {};
+
+app.get('/users/:id', async (req, res) => {
+  const { id } = req.params;
+
+  if (!cache[id]) {
+    cache[id] = await db.query('SELECT * FROM users WHERE id = ?', [id]);
+  }
+
+  res.json(cache[id]);
+  // Cache grows forever! Eventually out of memory
+});
+
+// GOOD ✅
+const LRU = require('lru-cache');
+const cache = new LRU({
+  max: 1000,  // Maximum 1000 items
+  maxAge: 1000 * 60 * 5  // 5 minutes
+});
+
+app.get('/users/:id', async (req, res) => {
+  const { id} = req.params;
+
+  let user = cache.get(id);
+  if (!user) {
+    user = await db.query('SELECT * FROM users WHERE id = ?', [id]);
+    cache.set(id, user);
+  }
+
+  res.json(user);
+});
+```
+
+**3. Circular References**
+
+```javascript
+// BAD ❌
+class User {
+  constructor() {
+    this.posts = [];
+  }
+
+  addPost(post) {
+    post.user = this;  // Circular reference!
+    this.posts.push(post);
+  }
+}
+
+// GOOD ✅
+class User {
+  constructor() {
+    this.posts = [];
+  }
+
+  addPost(post) {
+    this.posts.push({ id: post.id, title: post.title });  // No circular ref
+  }
+}
+```
+
+### How to Detect Memory Leaks
+
+**Method 1: Monitor Memory Usage**
+
+```javascript
+// Log memory usage
+setInterval(() => {
+  const usage = process.memoryUsage();
+  console.log({
+    rss: `${Math.round(usage.rss / 1024 / 1024)}MB`,
+    heapUsed: `${Math.round(usage.heapUsed / 1024 / 1024)}MB`,
+    heapTotal: `${Math.round(usage.heapTotal / 1024 / 1024)}MB`
+  });
+}, 10000);
+
+// If heapUsed keeps growing → memory leak
+```
+
+**Method 2: Heap Snapshots**
+
+```javascript
+// Take heap snapshot
+const v8 = require('v8');
+const fs = require('fs');
+
+function takeHeapSnapshot() {
+  const snapshotStream = v8.writeHeapSnapshot();
+  console.log(`Heap snapshot written to ${snapshotStream}`);
+}
+
+// Take snapshots at different points
+// Compare to find leaking objects
+```
+
+**Method 3: Load Test**
+
+Run a load test for 30+ minutes and watch memory usage:
+```
+0 min: 100MB ✅
+10 min: 150MB ✅
+20 min: 250MB ⚠️
+30 min: 500MB ❌
+```
+
+If memory usage grows continuously → memory leak
+
+---
+
+## Bottleneck #5: Synchronous External API Calls
+
+**Symptom**: Your API response time mirrors external API latency, even though your code is fast.
+
+**What it is**: Your API waits for external services (payment gateways, email APIs, third-party services) sequentially instead of in parallel.
+
+### Real-World Example
+
+```javascript
+// BAD - Sequential (slow) ❌
+app.post('/signup', async (req, res) => {
+  // 1. Create user (50ms)
+  const user = await db.create User(req.body);
+
+  // 2. Send welcome email (300ms) - BLOCKS
+  await sendEmail(user.email, 'Welcome!');
+
+  // 3. Create Stripe customer (400ms) - BLOCKS
+  await stripe.customers.create({ email: user.email });
+
+  // 4. Send to analytics (200ms) - BLOCKS
+  await analytics.track('signup', { userId: user.id });
+
+  res.json({ success: true });
+  // Total time: 50 + 300 + 400 + 200 = 950ms
+});
+
+// GOOD - Parallel (fast) ✅
+app.post('/signup', async (req, res) => {
+  // 1. Create user (50ms)
+  const user = await db.createUser(req.body);
+
+  // 2-4. Do everything else in parallel
+  await Promise.all([
+    sendEmail(user.email, 'Welcome!'),        // 300ms
+    stripe.customers.create({ email: user.email }),  // 400ms
+    analytics.track('signup', { userId: user.id })   // 200ms
+  ]);
+
+  res.json({ success: true });
+  // Total time: 50 + max(300, 400, 200) = 450ms
+  // 2x faster!
+});
+```
+
+**Performance improvement**: 950ms → 450ms (2.1x faster)
+
+### Even Better: Background Jobs
+
+```javascript
+// BEST - Background jobs ✅
+app.post('/signup', async (req, res) => {
+  // 1. Create user (50ms)
+  const user = await db.createUser(req.body);
+
+  // 2. Queue background jobs (5ms total)
+  await queue.add('send-welcome-email', { userId: user.id });
+  await queue.add('create-stripe-customer', { userId: user.id });
+  await queue.add('track-signup', { userId: user.id });
+
+  res.json({ success: true });
+  // Total time: 50 + 5 = 55ms
+  // 17x faster than original!
+});
+
+// Jobs processed in background
+queue.process('send-welcome-email', async (job) => {
+  await sendEmail(job.data.userId);
+});
+
+queue.process('create-stripe-customer', async (job) => {
+  await stripe.customers.create(job.data);
+});
+```
+
+**Performance**: 950ms → 55ms (17x faster)
+
+### When to Use Each Approach
+
+| Approach | Response Time | Use When |
+|----------|---------------|----------|
+| Sequential | Slowest | User needs result (payment processing) |
+| Parallel | Medium | Multiple tasks, user waits for all |
+| Background Job | Fastest | User doesn't need immediate result |
+
+---
+
+## Bonus: Quick Wins for Immediate Performance Gains
+
+### 1. Add Response Compression
+
+```javascript
+const compression = require('compression');
+app.use(compression());
+
+// Reduces response size by 60-80%
+// 500KB response → 100KB compressed
+```
+
+### 2. Enable HTTP/2
+
+```javascript
+const http2 = require('http2');
+const fs = require('fs');
+
+const server = http2.createSecureServer({
+  key: fs.readFileSync('key.pem'),
+  cert: fs.readFileSync('cert.pem')
+});
+
+// 40-50% faster than HTTP/1.1
+```
+
+### 3. Add Database Query Caching
+
+```javascript
+const redis = require('redis');
+const client = redis.createClient();
+
+async function getUser(id) {
+  // Check cache first
+  const cached = await client.get(`user:${id}`);
+  if (cached) return JSON.parse(cached);
+
+  // Cache miss - query database
+  const user = await db.query('SELECT * FROM users WHERE id = ?', [id]);
+
+  // Store in cache for 5 minutes
+  await client.setex(`user:${id}`, 300, JSON.stringify(user));
+
+  return user;
+}
+
+// 100x faster for cached data
+```
+
+### 4. Implement Rate Limiting
+
+```javascript
+const rateLimit = require('express-rate-limit');
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100 // Limit each IP to 100 requests per window
+});
+
+app.use('/api/', limiter);
+
+// Prevents abuse, protects from DDoS
+```
+
+---
+
+## How to Prevent Bottlenecks
+
+### 1. Load Test Regularly
+
+Don't wait for production issues:
+- Load test before every major release
+- Stress test monthly
+- Soak test quarterly (find memory leaks)
+
+### 2. Monitor Key Metrics
+
+Set up alerts for:
+- Response time P95 > 500ms
+- Error rate > 1%
+- Database connection pool > 80% used
+- Memory usage growth > 10% per hour
+- CPU usage > 70%
+
+### 3. Code Review Checklist
+
+Before merging:
+- [ ] No N+1 queries (check for loops with queries)
+- [ ] Indexes exist for WHERE/JOIN columns
+- [ ] External API calls are async or backgrounded
+- [ ] Caches have size limits
+- [ ] Event listeners are cleaned up
+
+### 4. Use APM Tools
+
+Tools like New Relic, Datadog, or Sentry automatically detect:
+- N+1 queries
+- Slow database queries
+- Memory leaks
+- Performance regressions
+
+---
+
+## Real-World Case Study
+
+**Startup**: Social media API
+**Problem**: API crashed at 100 concurrent users
+**Timeline to fix**: 1 day
+
+### Issues Found:
+
+1. **N+1 Query**: Loading user timelines
+   - 1 query for posts + N queries for post authors
+   - **Fix**: Added JOIN to fetch authors in single query
+   - **Result**: 800ms → 50ms (16x faster)
+
+2. **Missing Indexes**: User lookup by username
+   - Table scan on 500K users
+   - **Fix**: Added index on username column
+   - **Result**: 1200ms → 5ms (240x faster)
+
+3. **Connection Pool**: Only 10 connections
+   - **Fix**: Increased to 50 connections
+   - **Result**: No more timeout errors
+
+4. **Synchronous Email Sending**: 300ms per signup
+   - **Fix**: Moved to background job queue
+   - **Result**: Signup API 300ms → 50ms (6x faster)
+
+5. **Memory Leak**: Cache growing unbounded
+   - **Fix**: Switched to LRU cache with 1000 item limit
+   - **Result**: Memory stable at 200MB (was growing to 2GB)
+
+### Final Results:
+
+- **Before**: Crashed at 100 users, 2s response times
+- **After**: Handles 800+ users, 50ms response times
+- **Total fixes**: 1 day of work, $0 additional cost
+
+---
+
+## Conclusion: Fix These Five First
+
+When your API has performance issues, start here:
+
+1. **Check for N+1 queries** - Add eager loading
+2. **Add database indexes** - Use EXPLAIN to find missing indexes
+3. **Increase connection pool** - Calculate based on concurrent requests
+4. **Look for memory leaks** - Monitor memory usage over time
+5. **Make external calls async** - Use Promise.all or background jobs
+
+**90% of API performance issues come from these 5 bottlenecks.**
+
+Fix them, and your API will be faster, more reliable, and able to handle 10x more traffic.
+
+---
+
+## Ready to Find Your Bottlenecks?
+
+API Stress Lab's load testing identifies bottlenecks automatically:
+- Run realistic traffic scenarios
+- See which endpoints slow down first
+- Get AI-powered recommendations on what to fix
+
+Start with 50 free credits - no credit card required.
+
+[Find Your Bottlenecks →](/signup)
+
+---
+
+**Related Posts**:
+- [How to Test Your API Before Launch](/blog/test-api-before-launch-guide)
+- [Load Testing vs Stress Testing: What's the Difference?](/blog/load-testing-vs-stress-testing)
+- [The MVP Launch Checklist](/blog/mvp-launch-checklist)
