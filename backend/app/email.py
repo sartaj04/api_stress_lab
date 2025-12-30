@@ -127,68 +127,68 @@ def send_suite_completion_email(email: str, project_name: str, suite_id: str, su
     subject = f"Test Suite Complete - {project_name} | API Stress Lab"
 
     # Create HTML email body
-    html_body = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    </head>
-    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <div style="background: #111113; padding: 30px; border-radius: 8px; margin-bottom: 20px;">
-            <h1 style="color: #fff; margin: 0; font-size: 24px;">API Stress Lab</h1>
+    html_body = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
+    <div style="background: #111113; padding: 30px; border-radius: 8px; margin-bottom: 20px;">
+        <h1 style="color: #fff; margin: 0; font-size: 24px;">API Stress Lab</h1>
+    </div>
+
+    <div style="background: #fff; padding: 30px; border-radius: 8px; border: 1px solid #e0e0e0;">
+        <h2 style="color: #333; margin-top: 0;">Test Suite Complete</h2>
+        <p>Your test suite for <strong>{project_name}</strong> has finished running.</p>
+
+        <div style="background: #f5f5f5; padding: 20px; border-radius: 6px; margin: 20px 0;">
+            <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td style="color: #666; font-size: 14px; padding-bottom: 10px;">Tests Completed</td>
+                    <td style="color: #333; font-weight: 600; font-size: 18px; text-align: right; padding-bottom: 10px;">{completed_tests} / {total_tests}</td>
+                </tr>
+            </table>
+            <div style="width: 100%; height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden;">
+                <div style="width: {(completed_tests / total_tests * 100) if total_tests > 0 else 0}%; height: 100%; background: #10b981;"></div>
+            </div>
         </div>
 
-        <div style="background: #fff; padding: 30px; border-radius: 8px; border: 1px solid #e0e0e0;">
-            <h2 style="color: #333; margin-top: 0;">Test Suite Complete! 🎉</h2>
-            <p>Your test suite for <strong>{project_name}</strong> has finished running.</p>
+        <p style="color: #666; font-size: 14px; margin: 20px 0;">
+            View detailed results, performance metrics, and insights for your test suite.
+        </p>
 
-            <div style="background: #f5f5f5; padding: 20px; border-radius: 6px; margin: 20px 0;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <span style="color: #666; font-size: 14px;">Tests Completed</span>
-                    <span style="color: #333; font-weight: 600; font-size: 18px;">{completed_tests} / {total_tests}</span>
-                </div>
-                <div style="width: 100%; height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden;">
-                    <div style="width: {(completed_tests / total_tests * 100) if total_tests > 0 else 0}%; height: 100%; background: #10b981; transition: width 0.3s;"></div>
-                </div>
-            </div>
+        <table cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+            <tr>
+                <td style="background: #111113; border-radius: 6px;">
+                    <a href="{suite_url}" style="background: #111113; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 500;">View Results</a>
+                </td>
+            </tr>
+        </table>
 
-            <p style="color: #666; font-size: 14px; margin: 20px 0;">
-                View detailed results, performance metrics, and AI-generated insights for your test suite.
-            </p>
-
-            <div style="margin: 30px 0;">
-                <a href="{suite_url}" style="background: #111113; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 500;">
-                    View Results
-                </a>
-            </div>
-
-            <p style="color: #666; font-size: 14px; margin-top: 30px;">
-                Or copy and paste this link into your browser:<br>
-                <a href="{suite_url}" style="color: #0066cc; word-break: break-all;">{suite_url}</a>
-            </p>
-
-            <p style="color: #999; font-size: 12px; margin-top: 30px; border-top: 1px solid #e0e0e0; padding-top: 20px;">
-                This is an automated notification. You can safely ignore this email if you're already viewing the results.
-            </p>
-        </div>
-    </body>
-    </html>
-    """
+        <p style="color: #999; font-size: 12px; margin-top: 30px; border-top: 1px solid #e0e0e0; padding-top: 20px;">
+            This is an automated notification from API Stress Lab.<br>
+            API Stress Lab, Load Testing Platform<br>
+            <a href="https://apistresslab.com" style="color: #666; text-decoration: none;">apistresslab.com</a>
+        </p>
+    </div>
+</body>
+</html>"""
 
     # Create plain text version
-    text_body = f"""
-    Test Suite Complete - API Stress Lab
+    text_body = f"""Test Suite Complete - {project_name}
 
-    Your test suite for {project_name} has finished running.
+Your test suite for {project_name} has finished running.
 
-    Tests Completed: {completed_tests} / {total_tests}
+Tests Completed: {completed_tests} / {total_tests}
 
-    View detailed results, performance metrics, and AI-generated insights:
-    {suite_url}
+View your test results here:
+{suite_url}
 
-    This is an automated notification. You can safely ignore this email if you're already viewing the results.
-    """
+---
+This is an automated notification from API Stress Lab.
+API Stress Lab - Load Testing Platform
+https://apistresslab.com"""
 
     # Send via Resend (only option on Railway/Render)
     if not settings.resend_api_key:

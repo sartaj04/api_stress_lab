@@ -147,6 +147,8 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
         setRerunning(true);
         try {
             const result = await runs.runSuite(projectId, suite.scenario_id);
+            // Reset state before navigation to prevent stuck button
+            setRerunning(false);
             // Navigate to new suite immediately
             router.push(`/projects/${projectId}/dashboard?suite=${result.suite_id}`);
         } catch (err: any) {
@@ -389,6 +391,9 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
                                                         <p className="text-emerald-400 font-medium text-sm mb-1">Sit back and relax</p>
                                                         <p className="text-white/60 text-sm">
                                                             More endpoints and complex endpoints take more time to test. Feel free to grab a coffee or work on other things — we&apos;ll notify you via email when your test suite is complete.
+                                                        </p>
+                                                        <p className="text-white/40 text-xs mt-2">
+                                                            Note: Email notifications may land in your spam folder. Please check spam if you don&apos;t see it in your inbox.
                                                         </p>
                                                     </div>
                                                 </div>
