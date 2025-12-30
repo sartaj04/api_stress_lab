@@ -5,24 +5,33 @@ Deploy API Stress Lab for **$0/month** using free tiers from multiple providers.
 ## Architecture Overview
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    FREE TIER STACK                          │
-│                                                             │
-│   ┌───────────────┐         ┌───────────────┐              │
-│   │    Vercel     │────────▶│    Render     │              │
-│   │  (Frontend)   │  API    │   (Backend)   │              │
-│   │   Next.js     │ Calls   │   FastAPI     │              │
-│   └───────────────┘         └───────┬───────┘              │
-│                                     │                       │
-│                 ┌───────────────────┼───────────────────┐  │
-│                 │                   │                   │  │
-│                 ▼                   ▼                   ▼  │
-│   ┌─────────────────┐  ┌─────────────────┐  ┌───────────┐ │
-│   │    Supabase     │  │     Upstash     │  │ Cloudflare│ │
-│   │   PostgreSQL    │  │      Redis      │  │    R2     │ │
-│   │   (Database)    │  │  (Cache/Queue)  │  │ (Storage) │ │
-│   └─────────────────┘  └─────────────────┘  └───────────┘ │
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                    DEPLOYMENT STACK                              │
+│                                                                  │
+│   ┌───────────────┐         ┌───────────────┐                   │
+│   │    Vercel     │────────▶│    Render     │                   │
+│   │  (Frontend)   │  API    │   (Backend)   │                   │
+│   │   Next.js     │ Calls   │   FastAPI     │                   │
+│   └───────────────┘         └───────┬───────┘                   │
+│                                     │                            │
+│                 ┌───────────────────┼───────────────────┐        │
+│                 │                   │                   │        │
+│                 ▼                   ▼                   ▼        │
+│   ┌─────────────────┐  ┌─────────────────┐  ┌───────────┐      │
+│   │    Supabase     │  │     Upstash     │  │ Cloudflare│      │
+│   │   PostgreSQL    │  │      Redis      │◀─│    R2     │      │
+│   │   (Database)    │  │  (Cache/Queue)  │ ││ (Storage) │      │
+│   └─────────────────┘  └────────┬────────┘ │└───────────┘      │
+│                                 │          │                    │
+│                                 │          │                    │
+│                      ┌──────────▼──────────┘                    │
+│                      │                                          │
+│                      │  ┌─────────────────┐                     │
+│                      └─▶│    Railway      │ (Optional $5/mo)    │
+│                         │  Celery Worker  │  or Local Worker    │
+│                         │  (Background)   │                     │
+│                         └─────────────────┘                     │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 ## Prerequisites
@@ -339,6 +348,84 @@ Test each of these after deployment:
 
 ---
 
+## Step 8: Railway (Celery Worker) - Optional
+
+**Time: 5 minutes | Cost: $5-7/month**
+
+Deploy a dedicated Celery worker to process background tasks automatically. This is optional - you can also run the worker locally using `docker-compose up worker`.
+
+### 8.1 Create Account
+1. Go to [railway.app](https://railway.app)
+2. Sign up with GitHub
+
+### 8.2 Create New Project
+1. Click **New Project**
+2. Select **Deploy from GitHub repo**
+3. Connect your GitHub account if not already connected
+4. Select repository: `sartaj04/api_stress_lab`
+
+### 8.3 Configure Service
+1. After importing, click on the service
+2. Click **Settings** tab
+3. Configure:
+
+| Setting | Value |
+|---------|-------|
+| **Service Name** | `worker` |
+| **Root Directory** | `backend` |
+| **Build Command** | Leave empty (uses Dockerfile) |
+| **Start Command** | Leave empty (uses Dockerfile.worker) |
+| **Dockerfile Path** | `backend/Dockerfile.worker` |
+
+### 8.4 Add Environment Variables
+Click **Variables** tab and add each:
+
+| Key | Value |
+|-----|-------|
+| `DATABASE_URL` | Your Supabase connection string (same as Render) |
+| `REDIS_URL` | Your Upstash Redis URL (same as Render) |
+| `S3_ENDPOINT` | Your Cloudflare R2 endpoint |
+| `S3_ACCESS_KEY` | Your R2 access key |
+| `S3_SECRET_KEY` | Your R2 secret key |
+| `S3_BUCKET` | `apistresslab` |
+| `S3_SECURE` | `true` |
+| `JWT_SECRET` | Same as Render |
+| `ENCRYPTION_KEY` | Same as Render |
+| `FRONTEND_URL` | `https://apistresslab.com` (or your production URL) |
+| `SMTP_ENABLED` | `true` |
+| `SMTP_HOST` | `smtp.gmail.com` |
+| `SMTP_PORT` | `587` |
+| `SMTP_USE_TLS` | `true` |
+| `SMTP_USERNAME` | Your Gmail address |
+| `SMTP_PASSWORD` | Your Gmail app password |
+| `SMTP_FROM_EMAIL` | Your Gmail address |
+| `OPENAI_API_KEY` | Your OpenAI API key (optional) |
+
+### 8.5 Deploy
+1. Click **Deploy** or wait for auto-deploy
+2. Railway will build using `Dockerfile.worker`
+3. Worker will start automatically and begin processing tasks from Redis
+
+### 8.6 Monitor
+- Check **Logs** tab to see worker activity
+- Worker will automatically process tasks when users run tests
+- No public URL needed (worker doesn't serve HTTP)
+
+### 8.7 Pricing
+Railway uses **pay-as-you-go** pricing:
+- **Hobby Plan**: $5/month credit included
+- Typical worker usage: $5-7/month (1GB RAM, light CPU usage)
+- Will pause if credit runs out (can add more)
+
+### Alternative: Local Worker
+If you prefer not to pay for Railway:
+1. Keep Railway service deleted/stopped
+2. Run worker locally when needed: `docker-compose up worker`
+3. Admin emails will notify you when tests are queued
+4. Local worker connects to production Redis automatically
+
+---
+
 ## Upgrading from Free Tier
 
 When you need more resources:
@@ -346,6 +433,7 @@ When you need more resources:
 | Service | Free → Paid | Starting Price |
 |---------|-------------|----------------|
 | Render | Starter plan | $7/month |
+| Railway | Hobby plan | $5/month (included credit) |
 | Supabase | Pro plan | $25/month |
 | Upstash | Pay-as-you-go | $0.20/100k commands |
 | Cloudflare R2 | Pay-as-you-go | $0.015/GB/month |

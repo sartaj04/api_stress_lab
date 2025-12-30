@@ -25,4 +25,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+# Create non-root user for security
+RUN useradd -m -u 1000 celeryuser && \
+    chown -R celeryuser:celeryuser /app
+
+USER celeryuser
+
 CMD ["celery", "-A", "app.worker.celery_app", "worker", "--loglevel=info"]
