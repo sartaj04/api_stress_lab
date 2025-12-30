@@ -38,3 +38,14 @@ def root():
 @app.get("/health")
 def health():
     return {"status": "healthy"}
+
+
+@app.get("/debug/config")
+def debug_config():
+    """Debug endpoint to check configuration values (remove in production)."""
+    return {
+        "frontend_url": settings.frontend_url,
+        "cors_origins": settings.cors_origins,
+        "smtp_enabled": settings.smtp_enabled,
+        "stripe_configured": bool(settings.stripe_secret_key)
+    }

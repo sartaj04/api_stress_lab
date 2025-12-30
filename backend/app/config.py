@@ -76,6 +76,16 @@ class Settings(BaseSettings):
             return v.strip()
         return v
 
+    @field_validator('frontend_url', mode='before')
+    @classmethod
+    def strip_frontend_url(cls, v):
+        """Strip whitespace from frontend_url and ensure it's set properly."""
+        if v is None:
+            return "http://localhost:3000"
+        if isinstance(v, str):
+            return v.strip()
+        return v
+
     class Config:
         env_file = ".env"
         case_sensitive = False

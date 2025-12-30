@@ -235,7 +235,6 @@ def run_load_test(self, run_id: int):
                     suite_url = f"{settings.frontend_url}/projects/{project.id}/dashboard?suite={suite_id}"
                     completed_count = len([r for r in suite_runs if r.status == "completed"])
                     total_count = len(suite_runs)
-                    
                     # Send email asynchronously (don't block task completion)
                     try:
                         send_suite_completion_email(
@@ -286,7 +285,12 @@ def run_load_test(self, run_id: int):
                         suite_url = f"{settings.frontend_url}/projects/{project.id}/dashboard?suite={suite_id}"
                         completed_count = len([r for r in suite_runs if r.status == "completed"])
                         total_count = len(suite_runs)
-                        
+
+                        # Log the URL for debugging
+                        import logging
+                        logger = logging.getLogger(__name__)
+                        logger.info(f"Sending email with suite URL: {suite_url} (frontend_url={settings.frontend_url})")
+
                         # Send email asynchronously (don't block task completion)
                         try:
                             send_suite_completion_email(
