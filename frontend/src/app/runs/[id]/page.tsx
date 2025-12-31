@@ -296,8 +296,14 @@ export default function RunDetailPage({ params }: { params: { id: string } }) {
                                                 label={{ value: 'Latency (ms)', angle: -90, position: 'insideLeft', fontSize: 10, fill: 'rgba(255,255,255,0.4)' }}
                                             />
                                             <Tooltip
-                                                contentStyle={{ backgroundColor: '#1a1a1c', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                                                contentStyle={{
+                                                    backgroundColor: '#1a1a1c',
+                                                    border: '1px solid rgba(255,255,255,0.1)',
+                                                    borderRadius: '8px',
+                                                    color: '#fff'
+                                                }}
                                                 labelStyle={{ color: '#fff' }}
+                                                itemStyle={{ color: '#fff' }}
                                                 formatter={(value: number, name: string) => [
                                                     `${value.toFixed(0)}ms`,
                                                     name === 'p50' ? 'Median' : 'P95'
@@ -331,7 +337,14 @@ export default function RunDetailPage({ params }: { params: { id: string } }) {
                                                 label={{ value: 'Error Rate', angle: -90, position: 'insideLeft', fontSize: 10, fill: 'rgba(255,255,255,0.4)' }}
                                             />
                                             <Tooltip
-                                                contentStyle={{ backgroundColor: '#1a1a1c', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                                                contentStyle={{
+                                                    backgroundColor: '#1a1a1c',
+                                                    border: '1px solid rgba(255,255,255,0.1)',
+                                                    borderRadius: '8px',
+                                                    color: '#fff'
+                                                }}
+                                                labelStyle={{ color: '#fff' }}
+                                                itemStyle={{ color: '#fff' }}
                                                 formatter={(value: number) => [`${(value * 100).toFixed(2)}%`, 'Error Rate']}
                                                 labelFormatter={(value) => `${value} users`}
                                             />
@@ -457,8 +470,14 @@ export default function RunDetailPage({ params }: { params: { id: string } }) {
                                         <XAxis dataKey="time_bucket" stroke="rgba(255,255,255,0.3)" fontSize={11} />
                                         <YAxis stroke="rgba(255,255,255,0.3)" fontSize={11} />
                                         <Tooltip
-                                            contentStyle={{ backgroundColor: '#1a1a1c', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                                            contentStyle={{
+                                                backgroundColor: '#1a1a1c',
+                                                border: '1px solid rgba(255,255,255,0.1)',
+                                                borderRadius: '8px',
+                                                color: '#fff'
+                                            }}
                                             labelStyle={{ color: '#fff' }}
+                                            itemStyle={{ color: '#fff' }}
                                         />
                                         <Legend />
                                         <Line type="monotone" dataKey="p50" stroke="#10b981" name="P50" strokeWidth={2} dot={false} />
@@ -477,7 +496,14 @@ export default function RunDetailPage({ params }: { params: { id: string } }) {
                                         <XAxis dataKey="time_bucket" stroke="rgba(255,255,255,0.3)" fontSize={11} />
                                         <YAxis stroke="rgba(255,255,255,0.3)" fontSize={11} />
                                         <Tooltip
-                                            contentStyle={{ backgroundColor: '#1a1a1c', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                                            contentStyle={{
+                                                backgroundColor: '#1a1a1c',
+                                                border: '1px solid rgba(255,255,255,0.1)',
+                                                borderRadius: '8px',
+                                                color: '#fff'
+                                            }}
+                                            labelStyle={{ color: '#fff' }}
+                                            itemStyle={{ color: '#fff' }}
                                         />
                                         <Area type="monotone" dataKey="rps" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.2} name="RPS" />
                                     </AreaChart>
@@ -507,7 +533,14 @@ export default function RunDetailPage({ params }: { params: { id: string } }) {
                                             ))}
                                         </Pie>
                                         <Tooltip
-                                            contentStyle={{ backgroundColor: '#1a1a1c', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                                            contentStyle={{
+                                                backgroundColor: '#1a1a1c',
+                                                border: '1px solid rgba(255,255,255,0.1)',
+                                                borderRadius: '8px',
+                                                color: '#fff'
+                                            }}
+                                            labelStyle={{ color: '#fff' }}
+                                            itemStyle={{ color: '#fff' }}
                                         />
                                     </PieChart>
                                 </ResponsiveContainer>
@@ -522,7 +555,14 @@ export default function RunDetailPage({ params }: { params: { id: string } }) {
                                         <XAxis dataKey="time_bucket" stroke="rgba(255,255,255,0.3)" fontSize={11} />
                                         <YAxis stroke="rgba(255,255,255,0.3)" fontSize={11} tickFormatter={(v) => `${(v * 100).toFixed(0)}%`} />
                                         <Tooltip
-                                            contentStyle={{ backgroundColor: '#1a1a1c', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                                            contentStyle={{
+                                                backgroundColor: '#1a1a1c',
+                                                border: '1px solid rgba(255,255,255,0.1)',
+                                                borderRadius: '8px',
+                                                color: '#fff'
+                                            }}
+                                            labelStyle={{ color: '#fff' }}
+                                            itemStyle={{ color: '#fff' }}
                                             formatter={(value: number) => `${(value * 100).toFixed(2)}%`}
                                         />
                                         <Area type="monotone" dataKey="error_rate" stroke="#ef4444" fill="#ef4444" fillOpacity={0.2} name="Error Rate" />
@@ -534,13 +574,20 @@ export default function RunDetailPage({ params }: { params: { id: string } }) {
                         {/* Endpoint Breakdown */}
                         <div className="card p-5 mb-4">
                             <h3 className="text-sm font-medium text-white mb-4">Endpoint Breakdown</h3>
-                            <ResponsiveContainer width="100%" height={Math.max(280, endpointData.length * 40)}>
+                            <ResponsiveContainer width="100%" height={Math.max(400, endpointData.length * 80)}>
                                 <BarChart data={endpointData} layout="vertical">
                                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                                     <XAxis type="number" stroke="rgba(255,255,255,0.3)" fontSize={11} />
                                     <YAxis dataKey="name" type="category" stroke="rgba(255,255,255,0.3)" width={200} fontSize={11} />
                                     <Tooltip
-                                        contentStyle={{ backgroundColor: '#1a1a1c', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                                        contentStyle={{
+                                            backgroundColor: '#1a1a1c',
+                                            border: '1px solid rgba(255,255,255,0.1)',
+                                            borderRadius: '8px',
+                                            color: '#fff'
+                                        }}
+                                        labelStyle={{ color: '#fff' }}
+                                        itemStyle={{ color: '#fff' }}
                                         formatter={(value: number, name: string) => [
                                             name === 'p95' ? `${value.toFixed(0)}ms` : `${value.toFixed(2)}%`,
                                             name === 'p95' ? 'P95 Latency' : 'Error Rate'
