@@ -171,37 +171,31 @@ schemathesis run openapi.yaml --base-url http://localhost:3000
 
 ### Load Testing Without Writing Scripts
 
-**This is where OpenAPI really shines** (and why we built API Stress Lab).
+**OpenAPI specs enable automated load testing** by providing all endpoint information in a machine-readable format.
 
 **Without OpenAPI**:
 ```javascript
-// Manual k6 script (tedious)
+// Manual k6 script - must write for every endpoint
 import http from 'k6/http';
 
 export default function () {
-  // Manually write every endpoint
   http.get('http://api.example.com/users');
   http.post('http://api.example.com/users', JSON.stringify({
     name: 'John',
     email: 'john@example.com'
   }));
-  // ... repeat for 50 endpoints
+  // ... repeat for all 50+ endpoints
 }
 ```
 
 **With OpenAPI**:
-```bash
-# Upload openapi.yaml
-# AI generates realistic traffic scenarios automatically
-# Tests all endpoints with valid data
-# No scripting required
-```
+Many load testing tools can automatically generate test scenarios from your OpenAPI specification, reducing manual scripting effort.
 
-**Why it works**: The OpenAPI spec tells us:
-- All your endpoints
-- What data they expect
-- Valid request formats
-- How endpoints relate (e.g., create user → get user → update user)
+**Why it works**: The OpenAPI spec provides:
+- Complete endpoint catalog
+- Request/response data structures
+- Valid data formats and types
+- Endpoint relationships and dependencies
 
 ---
 
@@ -576,19 +570,17 @@ You don't need a perfect OpenAPI spec to start. You need a spec that:
 
 ---
 
-## Use Your OpenAPI Spec for Load Testing
+## Leveraging OpenAPI for Load Testing
 
-Once you have an OpenAPI spec, you can automatically test your API under load.
+Once you have an OpenAPI spec, you can use it to automate load testing workflows.
 
-**API Stress Lab**:
-1. Upload your OpenAPI spec
-2. AI generates realistic test scenarios
-3. Run load, stress, or spike tests
-4. Get actionable performance insights
+Many modern load testing tools support OpenAPI specifications, allowing you to:
+1. Auto-generate test scenarios from your spec
+2. Validate API responses against defined schemas
+3. Run comprehensive load, stress, and spike tests
+4. Identify performance bottlenecks before production
 
-No scripting required. Start with 50 free credits.
-
-[Test Your API →](/signup)
+This eliminates the need for manual test scripting and keeps your tests synchronized with API changes.
 
 ---
 

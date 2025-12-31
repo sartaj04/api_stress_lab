@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/lib/auth-context';
 import { OrganizationSchema, WebsiteSchema, SoftwareApplicationSchema } from '@/components/StructuredData';
+import GoogleAnalytics from '@/components/GoogleAnalytics';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -99,6 +100,7 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body className={inter.className}>
+                <GoogleAnalytics />
                 <OrganizationSchema />
                 <WebsiteSchema />
                 <SoftwareApplicationSchema />
