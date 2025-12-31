@@ -6,7 +6,10 @@
         "dev": "next dev",
         "build": "next build",
         "start": "next start",
-        "lint": "next lint"
+        "lint": "next lint",
+        "validate:og": "node ../validate-og-images.js",
+        "validate:og:live": "node ../validate-og-images-live.js",
+        "validate:og:prod": "node ../validate-og-images-live.js https://apistresslab.com"
     },
     "dependencies": {
         "@mdx-js/loader": "^3.1.1",
