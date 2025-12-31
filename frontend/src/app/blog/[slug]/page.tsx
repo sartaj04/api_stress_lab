@@ -218,7 +218,7 @@ export default async function BlogPost({ params }: { params: { slug: string } })
                     </li>
                     <li className="flex gap-3 text-sm">
                       <span className="flex-shrink-0 w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-semibold">2</span>
-                      <span className="text-white/60">Choose test type (load, stress, spike)</span>
+                      <span className="text-white/60">Run real-world load scenarios (Based on how real users behave)</span>
                     </li>
                     <li className="flex gap-3 text-sm">
                       <span className="flex-shrink-0 w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-semibold">3</span>

@@ -275,7 +275,7 @@ export default function RunDetailPage({ params }: { params: { id: string } }) {
                         )}
 
                         {/* Concurrency Charts - 2 columns */}
-                        {concurrencyData.length > 0 && (
+                        {concurrencyData.length > 0 ? (
                             <div className="grid md:grid-cols-2 gap-4 mb-6">
                                 {/* Concurrent Users vs Response Time */}
                                 <div className="card p-5">
@@ -300,10 +300,11 @@ export default function RunDetailPage({ params }: { params: { id: string } }) {
                                                     backgroundColor: '#1a1a1c',
                                                     border: '1px solid rgba(255,255,255,0.1)',
                                                     borderRadius: '8px',
-                                                    color: '#fff'
+                                                    padding: '10px'
                                                 }}
-                                                labelStyle={{ color: '#fff' }}
-                                                itemStyle={{ color: '#fff' }}
+                                                labelStyle={{ color: '#fff', marginBottom: '5px' }}
+                                                itemStyle={{ color: '#fff', padding: '2px 0' }}
+                                                cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1 }}
                                                 formatter={(value: number, name: string) => [
                                                     `${value.toFixed(0)}ms`,
                                                     name === 'p50' ? 'Median' : 'P95'
@@ -341,10 +342,11 @@ export default function RunDetailPage({ params }: { params: { id: string } }) {
                                                     backgroundColor: '#1a1a1c',
                                                     border: '1px solid rgba(255,255,255,0.1)',
                                                     borderRadius: '8px',
-                                                    color: '#fff'
+                                                    padding: '10px'
                                                 }}
-                                                labelStyle={{ color: '#fff' }}
-                                                itemStyle={{ color: '#fff' }}
+                                                labelStyle={{ color: '#fff', marginBottom: '5px' }}
+                                                itemStyle={{ color: '#fff', padding: '2px 0' }}
+                                                cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1 }}
                                                 formatter={(value: number) => [`${(value * 100).toFixed(2)}%`, 'Error Rate']}
                                                 labelFormatter={(value) => `${value} users`}
                                             />
@@ -352,6 +354,10 @@ export default function RunDetailPage({ params }: { params: { id: string } }) {
                                         </AreaChart>
                                     </ResponsiveContainer>
                                 </div>
+                            </div>
+                        ) : report && (
+                            <div className="card p-6 mb-6 text-center">
+                                <p className="text-white/40 text-sm">Concurrency data not available for this test run</p>
                             </div>
                         )}
 
@@ -574,8 +580,8 @@ export default function RunDetailPage({ params }: { params: { id: string } }) {
                         {/* Endpoint Breakdown */}
                         <div className="card p-5 mb-4">
                             <h3 className="text-sm font-medium text-white mb-4">Endpoint Breakdown</h3>
-                            <ResponsiveContainer width="100%" height={Math.max(400, endpointData.length * 80)}>
-                                <BarChart data={endpointData} layout="vertical">
+                            <ResponsiveContainer width="100%" height={Math.max(600, endpointData.length * 120)}>
+                                <BarChart data={endpointData} layout="vertical" barSize={40}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                                     <XAxis type="number" stroke="rgba(255,255,255,0.3)" fontSize={11} />
                                     <YAxis dataKey="name" type="category" stroke="rgba(255,255,255,0.3)" width={200} fontSize={11} />
@@ -584,17 +590,18 @@ export default function RunDetailPage({ params }: { params: { id: string } }) {
                                             backgroundColor: '#1a1a1c',
                                             border: '1px solid rgba(255,255,255,0.1)',
                                             borderRadius: '8px',
-                                            color: '#fff'
+                                            padding: '10px'
                                         }}
-                                        labelStyle={{ color: '#fff' }}
-                                        itemStyle={{ color: '#fff' }}
+                                        labelStyle={{ color: '#fff', marginBottom: '5px' }}
+                                        itemStyle={{ color: '#fff', padding: '2px 0' }}
+                                        cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                                         formatter={(value: number, name: string) => [
                                             name === 'p95' ? `${value.toFixed(0)}ms` : `${value.toFixed(2)}%`,
                                             name === 'p95' ? 'P95 Latency' : 'Error Rate'
                                         ]}
                                     />
                                     <Legend />
-                                    <Bar dataKey="p95" fill="#f59e0b" name="P95 (ms)" />
+                                    <Bar dataKey="p95" fill="#f59e0b" name="P95 (ms)" barSize={40} />
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>

@@ -1332,7 +1332,15 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
                                                                                             label={{ value: 'Latency (ms)', angle: -90, position: 'insideLeft', fill: 'rgba(255,255,255,0.4)' }}
                                                                                         />
                                                                                         <Tooltip
-                                                                                            contentStyle={{ backgroundColor: '#0A0A0B', border: '1px solid rgba(255,255,255,0.1)' }}
+                                                                                            contentStyle={{
+                                                                                                backgroundColor: '#0A0A0B',
+                                                                                                border: '1px solid rgba(255,255,255,0.1)',
+                                                                                                borderRadius: '8px',
+                                                                                                padding: '10px',
+                                                                                                color: '#fff'
+                                                                                            }}
+                                                                                            labelStyle={{ color: '#fff', marginBottom: '5px' }}
+                                                                                            itemStyle={{ color: '#fff', padding: '2px 0' }}
                                                                                             cursor={{ strokeDasharray: '3 3' }}
                                                                                         />
                                                                                         <Legend />
@@ -1362,7 +1370,15 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
                                                                                             tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}
                                                                                         />
                                                                                         <Tooltip
-                                                                                            contentStyle={{ backgroundColor: '#0A0A0B', border: '1px solid rgba(255,255,255,0.1)' }}
+                                                                                            contentStyle={{
+                                                                                                backgroundColor: '#0A0A0B',
+                                                                                                border: '1px solid rgba(255,255,255,0.1)',
+                                                                                                borderRadius: '8px',
+                                                                                                padding: '10px',
+                                                                                                color: '#fff'
+                                                                                            }}
+                                                                                            labelStyle={{ color: '#fff', marginBottom: '5px' }}
+                                                                                            itemStyle={{ color: '#fff', padding: '2px 0' }}
                                                                                             cursor={{ strokeDasharray: '3 3' }}
                                                                                             formatter={(value: any) => `${(value * 100).toFixed(2)}%`}
                                                                                         />
@@ -1488,7 +1504,7 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
                                                             <div className="card p-5">
                                                                 <h3 className="font-semibold mb-4 text-white">Endpoint Latency Breakdown</h3>
                                                                 <p className="text-white/50 text-sm mb-4">P95 latency comparison across all endpoints</p>
-                                                                <div className="h-80">
+                                                                <div style={{ height: Math.max(600, report.endpoint_metrics.length * 60) }}>
                                                                     <ResponsiveContainer width="100%" height="100%">
                                                                         <BarChart
                                                                             data={[...report.endpoint_metrics]
@@ -1501,6 +1517,7 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
                                                                             }
                                                                             layout="vertical"
                                                                             margin={{ top: 5, right: 30, left: 150, bottom: 5 }}
+                                                                            barSize={20}
                                                                         >
                                                                             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                                                                             <XAxis
@@ -1520,8 +1537,14 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
                                                                                 contentStyle={{
                                                                                     backgroundColor: '#0A0A0B',
                                                                                     border: '1px solid rgba(255,255,255,0.1)',
-                                                                                    fontSize: 12
+                                                                                    borderRadius: '8px',
+                                                                                    padding: '10px',
+                                                                                    fontSize: 12,
+                                                                                    color: '#fff'
                                                                                 }}
+                                                                                labelStyle={{ color: '#fff', marginBottom: '5px' }}
+                                                                                itemStyle={{ color: '#fff', padding: '2px 0' }}
+                                                                                cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                                                                                 formatter={(value: any) => `${value.toFixed(0)}ms`}
                                                                             />
                                                                             <Legend wrapperStyle={{ fontSize: 12 }} />
