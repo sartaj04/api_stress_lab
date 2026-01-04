@@ -218,8 +218,8 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
                                     }}
                                 >
                                     <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${index === loadingSteps.length - 1
-                                            ? 'bg-emerald-500/20 border-2 border-emerald-500'
-                                            : 'bg-emerald-500/10 border border-emerald-500/30'
+                                        ? 'bg-emerald-500/20 border-2 border-emerald-500'
+                                        : 'bg-emerald-500/10 border border-emerald-500/30'
                                         }`}>
                                         {index === loadingSteps.length - 1 ? (
                                             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
@@ -231,8 +231,8 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
                                         )}
                                     </div>
                                     <span className={`text-sm ${index === loadingSteps.length - 1
-                                            ? 'text-white font-medium'
-                                            : 'text-white/60'
+                                        ? 'text-white font-medium'
+                                        : 'text-white/60'
                                         }`}>
                                         {step}
                                     </span>
@@ -278,8 +278,8 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
             {/* Toast Notification */}
             {toast && (
                 <div className={`fixed top-20 right-6 z-50 max-w-md ${toast.type === 'success'
-                        ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
-                        : 'bg-red-500/10 border border-red-500/20 text-red-400'
+                    ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+                    : 'bg-red-500/10 border border-red-500/20 text-red-400'
                     } rounded-lg p-4 shadow-lg flex items-center gap-3 transition-all`}>
                     {toast.type === 'success' ? (
                         <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -408,12 +408,12 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
                                                     <div
                                                         key={result.run_id}
                                                         className={`flex items-center gap-3 p-3 rounded-lg transition ${isRunning
-                                                                ? 'bg-yellow-500/10 border border-yellow-500/20'
-                                                                : isCompleted
-                                                                    ? 'bg-white/5'
-                                                                    : isFailed
-                                                                        ? 'bg-red-500/10'
-                                                                        : 'bg-white/[0.02]'
+                                                            ? 'bg-yellow-500/10 border border-yellow-500/20'
+                                                            : isCompleted
+                                                                ? 'bg-white/5'
+                                                                : isFailed
+                                                                    ? 'bg-red-500/10'
+                                                                    : 'bg-white/[0.02]'
                                                             }`}
                                                     >
                                                         {/* Status Icon */}
@@ -437,9 +437,9 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
                                                         <div className="flex-1 min-w-0">
                                                             <div className="flex items-center justify-between">
                                                                 <span className={`text-sm font-medium ${isRunning ? 'text-yellow-400' :
-                                                                        isCompleted ? 'text-white' :
-                                                                            isFailed ? 'text-red-400' :
-                                                                                'text-white/60'
+                                                                    isCompleted ? 'text-white' :
+                                                                        isFailed ? 'text-red-400' :
+                                                                            'text-white/60'
                                                                     }`}>
                                                                     {result.suite_profile_name}
                                                                 </span>
@@ -542,16 +542,16 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
                                                 key={result.run_id}
                                                 onClick={() => setActiveTab(result.suite_profile)}
                                                 className={`card p-4 text-left transition ${activeTab === result.suite_profile
-                                                        ? 'border-white/20'
-                                                        : 'hover:border-white/15'
+                                                    ? 'border-white/20'
+                                                    : 'hover:border-white/15'
                                                     }`}
                                             >
                                                 <div className="flex items-center justify-between mb-2">
                                                     <span className="font-medium text-white text-sm">{result.suite_profile_name}</span>
                                                     <span className={`text-xs px-2 py-0.5 rounded ${testFailed ? 'bg-red-500/15 text-red-400' :
-                                                            result.status === 'completed' ? 'bg-green-500/15 text-green-400' :
-                                                                result.status === 'running' ? 'bg-yellow-500/15 text-yellow-400' :
-                                                                    'bg-white/5 text-white/40'
+                                                        result.status === 'completed' ? 'bg-green-500/15 text-green-400' :
+                                                            result.status === 'running' ? 'bg-yellow-500/15 text-yellow-400' :
+                                                                'bg-white/5 text-white/40'
                                                         }`}>
                                                         {displayStatus}
                                                     </span>
@@ -703,13 +703,36 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
 
                                                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                                                         {/* Total Users Supported */}
-                                                        <div className="bg-white/[0.02] rounded-lg border border-white/[0.06] p-4">
+                                                        <div className={`bg-white/[0.02] rounded-lg border p-4 ${maxStableUsers === 0 ? 'border-red-500/20' : 'border-white/[0.06]'}`}>
                                                             <div className="flex items-center gap-2 mb-2">
-                                                                <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                                                <span className={`w-2 h-2 rounded-full ${maxStableUsers === 0 ? 'bg-red-400' : 'bg-emerald-400'}`}></span>
                                                                 <span className="text-white/50 text-xs font-medium uppercase">Total Users Supported</span>
                                                             </div>
-                                                            <div className="text-3xl font-bold text-emerald-400 mb-1">{maxStableUsers}</div>
-                                                            <div className="text-xs text-white/40">Maximum stable concurrent users across all tests</div>
+                                                            <div className={`text-3xl font-bold mb-1 ${maxStableUsers === 0 ? 'text-red-400' : 'text-emerald-400'}`}>{maxStableUsers}</div>
+                                                            {maxStableUsers === 0 ? (
+                                                                <div className="text-xs text-red-400/80">
+                                                                    {breakingAPIs.length > 0 ? (
+                                                                        <>
+                                                                            {/* Get unique endpoints that failed */}
+                                                                            {(() => {
+                                                                                const uniqueEndpoints = Array.from(new Set(breakingAPIs.map(a => a.endpoint)));
+                                                                                const highestErrorEndpoint = breakingAPIs.reduce((max, curr) =>
+                                                                                    curr.errorRate > max.errorRate ? curr : max, breakingAPIs[0]);
+
+                                                                                if (uniqueEndpoints.length === 1) {
+                                                                                    return `${uniqueEndpoints[0]} returned ${(highestErrorEndpoint.errorRate * 100).toFixed(0)}% errors across all tests`;
+                                                                                } else {
+                                                                                    return `${uniqueEndpoints.length} endpoints failed — ${uniqueEndpoints[0]} had ${(highestErrorEndpoint.errorRate * 100).toFixed(0)}% error rate`;
+                                                                                }
+                                                                            })()}
+                                                                        </>
+                                                                    ) : (
+                                                                        'No stable capacity — check API connectivity and authentication'
+                                                                    )}
+                                                                </div>
+                                                            ) : (
+                                                                <div className="text-xs text-white/40">Maximum stable concurrent users across all tests</div>
+                                                            )}
                                                         </div>
 
                                                         {/* Concurrent Users Tested */}
@@ -729,7 +752,7 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
                                                         </div>
 
                                                         {/* When It Slows Down */}
-                                                        {minLatencyInflection && (
+                                                        {minLatencyInflection !== null && minLatencyInflection !== undefined && (
                                                             <div className="bg-white/[0.02] rounded-lg border border-white/[0.06] p-4">
                                                                 <div className="flex items-center gap-2 mb-2">
                                                                     <span className="w-2 h-2 rounded-full bg-amber-400"></span>
@@ -741,7 +764,7 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
                                                         )}
 
                                                         {/* When It Breaks */}
-                                                        {minBreakingPoint && (
+                                                        {minBreakingPoint !== null && minBreakingPoint !== undefined && (
                                                             <div className="bg-white/[0.02] rounded-lg border border-white/[0.06] p-4">
                                                                 <div className="flex items-center gap-2 mb-2">
                                                                     <span className="w-2 h-2 rounded-full bg-red-400"></span>
@@ -899,8 +922,8 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
                                                     <div className="text-center p-4 bg-white/[0.02] rounded-lg border border-white/[0.06]">
                                                         <div className="text-white/40 text-sm mb-2">Resilience Score</div>
                                                         <div className={`text-5xl font-bold ${suite.ai_summary.resilience_score?.grade === 'A' ? 'text-emerald-400' :
-                                                                suite.ai_summary.resilience_score?.grade === 'B' ? 'text-blue-400' :
-                                                                    'text-amber-400'
+                                                            suite.ai_summary.resilience_score?.grade === 'B' ? 'text-blue-400' :
+                                                                'text-amber-400'
                                                             }`}>
                                                             {suite.ai_summary.resilience_score?.score || 'N/A'}
                                                         </div>
@@ -909,8 +932,8 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
 
                                                     {/* Production Ready */}
                                                     <div className={`text-center p-4 rounded-lg border ${suite.ai_summary.production_readiness?.current_verdict === 'READY'
-                                                            ? 'bg-emerald-500/5 border-emerald-500/20'
-                                                            : 'bg-yellow-500/5 border-yellow-500/20'
+                                                        ? 'bg-emerald-500/5 border-emerald-500/20'
+                                                        : 'bg-yellow-500/5 border-yellow-500/20'
                                                         }`}>
                                                         <div className="text-white/40 text-sm mb-2">Production Ready?</div>
                                                         <div className={`text-xl font-semibold ${suite.ai_summary.production_readiness?.current_verdict === 'READY' ? 'text-green-400' : 'text-yellow-400'
@@ -960,8 +983,8 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
                                                                 {suite.ai_summary.action_items.map((item: any, i: number) => (
                                                                     <div key={i} className="flex gap-3">
                                                                         <span className={`flex-shrink-0 px-2 py-0.5 text-xs rounded font-medium ${item.priority === 'HIGH' ? 'bg-red-500/10 text-red-400' :
-                                                                                item.priority === 'MEDIUM' ? 'bg-amber-500/10 text-amber-400' :
-                                                                                    'bg-blue-500/10 text-blue-400'
+                                                                            item.priority === 'MEDIUM' ? 'bg-amber-500/10 text-amber-400' :
+                                                                                'bg-blue-500/10 text-blue-400'
                                                                             }`}>
                                                                             {item.priority}
                                                                         </span>
@@ -1585,8 +1608,8 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
                                                                 {Object.entries(report.status_code_distribution).map(([code, count]: [string, any]) => (
                                                                     <div key={code} className="bg-white/[0.02] rounded-lg p-4 border border-white/[0.06]">
                                                                         <div className={`text-2xl font-bold mb-1 ${code.startsWith('2') ? 'text-emerald-400' :
-                                                                                code.startsWith('4') ? 'text-amber-400' :
-                                                                                    code.startsWith('5') ? 'text-red-400' : 'text-white'
+                                                                            code.startsWith('4') ? 'text-amber-400' :
+                                                                                code.startsWith('5') ? 'text-red-400' : 'text-white'
                                                                             }`}>
                                                                             {code}
                                                                         </div>
@@ -1638,8 +1661,8 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
                                                                     <div className="text-center p-4 bg-white/[0.02] rounded-lg border border-white/[0.06]">
                                                                         <div className="text-white/40 text-sm mb-2">Overall</div>
                                                                         <div className={`text-3xl font-semibold ${report.ai_analysis.performance_grade.overall === 'A' ? 'text-emerald-400' :
-                                                                                report.ai_analysis.performance_grade.overall === 'B' ? 'text-blue-400' :
-                                                                                    report.ai_analysis.performance_grade.overall === 'C' ? 'text-amber-400' : 'text-red-400'
+                                                                            report.ai_analysis.performance_grade.overall === 'B' ? 'text-blue-400' :
+                                                                                report.ai_analysis.performance_grade.overall === 'C' ? 'text-amber-400' : 'text-red-400'
                                                                             }`}>
                                                                             {report.ai_analysis.performance_grade.overall}
                                                                         </div>
@@ -1647,8 +1670,8 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
                                                                     <div className="text-center p-4 bg-white/[0.02] rounded-lg border border-white/[0.06]">
                                                                         <div className="text-white/40 text-sm mb-2">Latency</div>
                                                                         <div className={`text-3xl font-semibold ${report.ai_analysis.performance_grade.latency === 'A' ? 'text-emerald-400' :
-                                                                                report.ai_analysis.performance_grade.latency === 'B' ? 'text-blue-400' :
-                                                                                    report.ai_analysis.performance_grade.latency === 'C' ? 'text-amber-400' : 'text-red-400'
+                                                                            report.ai_analysis.performance_grade.latency === 'B' ? 'text-blue-400' :
+                                                                                report.ai_analysis.performance_grade.latency === 'C' ? 'text-amber-400' : 'text-red-400'
                                                                             }`}>
                                                                             {report.ai_analysis.performance_grade.latency}
                                                                         </div>
@@ -1656,8 +1679,8 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
                                                                     <div className="text-center p-4 bg-white/[0.02] rounded-lg border border-white/[0.06]">
                                                                         <div className="text-white/40 text-sm mb-2">Reliability</div>
                                                                         <div className={`text-3xl font-semibold ${report.ai_analysis.performance_grade.reliability === 'A' ? 'text-emerald-400' :
-                                                                                report.ai_analysis.performance_grade.reliability === 'B' ? 'text-blue-400' :
-                                                                                    report.ai_analysis.performance_grade.reliability === 'C' ? 'text-amber-400' : 'text-red-400'
+                                                                            report.ai_analysis.performance_grade.reliability === 'B' ? 'text-blue-400' :
+                                                                                report.ai_analysis.performance_grade.reliability === 'C' ? 'text-amber-400' : 'text-red-400'
                                                                             }`}>
                                                                             {report.ai_analysis.performance_grade.reliability}
                                                                         </div>
@@ -1665,8 +1688,8 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
                                                                     <div className="text-center p-4 bg-white/[0.02] rounded-lg border border-white/[0.06]">
                                                                         <div className="text-white/40 text-sm mb-2">Throughput</div>
                                                                         <div className={`text-3xl font-semibold ${report.ai_analysis.performance_grade.throughput === 'A' ? 'text-emerald-400' :
-                                                                                report.ai_analysis.performance_grade.throughput === 'B' ? 'text-blue-400' :
-                                                                                    report.ai_analysis.performance_grade.throughput === 'C' ? 'text-amber-400' : 'text-red-400'
+                                                                            report.ai_analysis.performance_grade.throughput === 'B' ? 'text-blue-400' :
+                                                                                report.ai_analysis.performance_grade.throughput === 'C' ? 'text-amber-400' : 'text-red-400'
                                                                             }`}>
                                                                             {report.ai_analysis.performance_grade.throughput}
                                                                         </div>
@@ -1680,8 +1703,8 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
                                                                     <div className="flex items-center justify-between mb-3">
                                                                         <h4 className="font-medium text-white">Launch Readiness</h4>
                                                                         <span className={`px-3 py-1 rounded text-sm font-medium ${report.ai_analysis.launch_readiness.verdict === 'READY' ? 'bg-emerald-500/10 text-emerald-400' :
-                                                                                report.ai_analysis.launch_readiness.verdict === 'READY_WITH_WARNINGS' ? 'bg-amber-500/10 text-amber-400' :
-                                                                                    'bg-red-500/10 text-red-400'
+                                                                            report.ai_analysis.launch_readiness.verdict === 'READY_WITH_WARNINGS' ? 'bg-amber-500/10 text-amber-400' :
+                                                                                'bg-red-500/10 text-red-400'
                                                                             }`}>
                                                                             {report.ai_analysis.launch_readiness.verdict.replace(/_/g, ' ')}
                                                                         </span>
@@ -1760,8 +1783,8 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
                                                                                 <div className="w-full bg-white/10 rounded-full h-2">
                                                                                     <div
                                                                                         className={`h-2 rounded-full transition-all ${report.ai_analysis.headroom.percentage >= 80 ? 'bg-gradient-to-r from-red-400 to-red-600' :
-                                                                                                report.ai_analysis.headroom.percentage >= 60 ? 'bg-gradient-to-r from-amber-400 to-amber-600' :
-                                                                                                    'bg-gradient-to-r from-emerald-400 to-emerald-600'
+                                                                                            report.ai_analysis.headroom.percentage >= 60 ? 'bg-gradient-to-r from-amber-400 to-amber-600' :
+                                                                                                'bg-gradient-to-r from-emerald-400 to-emerald-600'
                                                                                             }`}
                                                                                         style={{ width: `${report.ai_analysis.headroom.percentage}%` }}
                                                                                     />
@@ -1804,8 +1827,8 @@ export default function ProjectDashboardPage({ params }: { params: { id: string 
                                                                         {report.ai_analysis.fix_priorities.map((fix: any, i: number) => (
                                                                             <li key={i} className="flex gap-3">
                                                                                 <span className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${fix.priority === 1 ? 'bg-red-500/10 text-red-400' :
-                                                                                        fix.priority === 2 ? 'bg-amber-500/10 text-amber-400' :
-                                                                                            'bg-blue-500/10 text-blue-400'
+                                                                                    fix.priority === 2 ? 'bg-amber-500/10 text-amber-400' :
+                                                                                        'bg-blue-500/10 text-blue-400'
                                                                                     }`}>
                                                                                     {fix.priority}
                                                                                 </span>

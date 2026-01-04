@@ -34,36 +34,36 @@ SUITE_PROFILES: Dict[SuiteProfile, ProfileConfig] = {
     SuiteProfile.SMOKE: ProfileConfig(
         name="Smoke Test",
         description="Low load baseline to verify system health",
-        vus=3,
-        duration=35,  # Longer duration for more meaningful baseline data
+        vus=20,  # Baseline load - typical single-server capacity check
+        duration=45,
         load_profile="constant"
     ),
     SuiteProfile.RAMP: ProfileConfig(
         name="Ramp Up Test", 
         description="Gradual load increase to find breaking point",
-        vus=8,
-        duration=20,
+        vus=50,  # Ramps up to find capacity limits
+        duration=60,
         load_profile="ramp"
     ),
     SuiteProfile.SPIKE: ProfileConfig(
         name="Spike Test",
         description="Sudden traffic burst to test resilience",
-        vus=10,
-        duration=35,  # Must be > 30s to allow for spike stages (10s + 10s + 10s + remaining)
+        vus=100,  # Simulates traffic spikes (2x normal peak)
+        duration=45,  # Must be > 30s for spike stages
         load_profile="spike"
     ),
     SuiteProfile.CHAOS: ProfileConfig(
         name="Chaos Test",
         description="Chaos engineering with latency and error injection", 
-        vus=5,
-        duration=20,
+        vus=30,  # Moderate load with chaos conditions
+        duration=45,
         load_profile="constant",
         chaos_latency_ms=200,
         chaos_latency_percent=20,
         chaos_abort_percent=5,
         chaos_burst_enabled=True,
-        chaos_burst_rps=20,
-        chaos_burst_seconds=3
+        chaos_burst_rps=50,  # Increased burst RPS
+        chaos_burst_seconds=5
     )
 }
 
