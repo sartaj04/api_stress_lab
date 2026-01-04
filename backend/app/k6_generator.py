@@ -23,13 +23,16 @@ def generate_k6_script(
     
     # Build options based on load profile
     if load_profile == "smoke":
+        # Smoke test: quick ramp up then sustain
+        # Ensure sustain stage has at least 5 seconds
+        sustain_duration = max(duration - 30, 5)
         stages = f"""
     stages: [
       {{ duration: '30s', target: {vus} }},
-      {{ duration: '{duration - 30}s', target: {vus} }},
+      {{ duration: '{sustain_duration}s', target: {vus} }},
     ],"""
     elif load_profile == "ramp":
-        step_duration = duration // 4
+        step_duration = max(duration // 4, 5)  # Ensure each step is at least 5 seconds
         stages = f"""
     stages: [
       {{ duration: '{step_duration}s', target: {vus // 4 or 1} }},
@@ -38,12 +41,15 @@ def generate_k6_script(
       {{ duration: '{step_duration}s', target: {vus // 2 or 1} }},
     ],"""
     elif load_profile == "spike":
+        # Spike test: quick ramp up, spike, ramp down, then sustain
+        # Ensure final stage has at least 5 seconds
+        final_stage_duration = max(duration - 30, 5)
         stages = f"""
     stages: [
       {{ duration: '10s', target: {vus // 4 or 1} }},
       {{ duration: '10s', target: {vus * 2} }},
       {{ duration: '10s', target: {vus // 4 or 1} }},
-      {{ duration: '{duration - 30}s', target: {vus} }},
+      {{ duration: '{final_stage_duration}s', target: {vus} }},
     ],"""
     else:
         stages = f"""
@@ -119,7 +125,7 @@ function {func_name}() {{
         endpoint_weights.append((func_name, weight))
     
     # Build weighted selection
-    total_weight = sum(w for _, w in endpoint_weights)
+    total_weight = sum(w for _, w in endpoint_weights) or 1  # Prevent division by zero
     weighted_selection = ""
     cumulative = 0
     for func_name, weight in endpoint_weights:

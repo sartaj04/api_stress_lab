@@ -284,14 +284,14 @@ export default function RunDetailPage({ params }: { params: { id: string } }) {
                                     <ResponsiveContainer width="100%" height={240}>
                                         <ComposedChart data={concurrencyData}>
                                             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                                            <XAxis 
-                                                dataKey="estimated_vus" 
-                                                stroke="rgba(255,255,255,0.3)" 
+                                            <XAxis
+                                                dataKey="estimated_vus"
+                                                stroke="rgba(255,255,255,0.3)"
                                                 fontSize={11}
                                                 label={{ value: 'Concurrent Users', position: 'bottom', offset: -5, fontSize: 10, fill: 'rgba(255,255,255,0.4)' }}
                                             />
-                                            <YAxis 
-                                                stroke="rgba(255,255,255,0.3)" 
+                                            <YAxis
+                                                stroke="rgba(255,255,255,0.3)"
                                                 fontSize={11}
                                                 label={{ value: 'Latency (ms)', angle: -90, position: 'insideLeft', fontSize: 10, fill: 'rgba(255,255,255,0.4)' }}
                                             />
@@ -325,15 +325,15 @@ export default function RunDetailPage({ params }: { params: { id: string } }) {
                                     <ResponsiveContainer width="100%" height={240}>
                                         <AreaChart data={concurrencyData}>
                                             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                                            <XAxis 
-                                                dataKey="estimated_vus" 
-                                                stroke="rgba(255,255,255,0.3)" 
+                                            <XAxis
+                                                dataKey="estimated_vus"
+                                                stroke="rgba(255,255,255,0.3)"
                                                 fontSize={11}
                                                 label={{ value: 'Concurrent Users', position: 'bottom', offset: -5, fontSize: 10, fill: 'rgba(255,255,255,0.4)' }}
                                             />
-                                            <YAxis 
-                                                stroke="rgba(255,255,255,0.3)" 
-                                                fontSize={11} 
+                                            <YAxis
+                                                stroke="rgba(255,255,255,0.3)"
+                                                fontSize={11}
                                                 tickFormatter={(v) => `${(v * 100).toFixed(0)}%`}
                                                 label={{ value: 'Error Rate', angle: -90, position: 'insideLeft', fontSize: 10, fill: 'rgba(255,255,255,0.4)' }}
                                             />
@@ -365,7 +365,7 @@ export default function RunDetailPage({ params }: { params: { id: string } }) {
                         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
                             {[
                                 { label: 'Total Requests', value: report.total_requests.toLocaleString() },
-                                { label: 'Success Rate', value: `${((1 - report.error_rate) * 100).toFixed(2)}%`, color: report.error_rate < 0.01 ? 'text-emerald-400' : 'text-amber-400' },
+                                { label: 'Success Rate', value: `${((1 - report.error_rate) * 100).toFixed(2)}%`, color: report.error_rate < 0.05 ? 'text-emerald-400' : 'text-amber-400' },
                                 { label: 'Avg Latency', value: formatLatency(report.avg_latency) },
                                 { label: 'P95 Latency', value: formatLatency(report.p95), color: report.p95 > 1000 ? 'text-amber-400' : undefined },
                                 { label: 'Max Stable RPS', value: report.max_stable_rps?.toFixed(1) || 'N/A' }
@@ -400,11 +400,10 @@ export default function RunDetailPage({ params }: { params: { id: string } }) {
                                         <div className="space-y-2">
                                             {report.capacity_insights.endpoint_analysis.rankings_by_latency.map((ep, i) => (
                                                 <div key={i} className="flex items-center gap-3 p-3 bg-white/[0.02] rounded-lg">
-                                                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                                                        i === 0 ? 'bg-amber-500/20 text-amber-400' :
-                                                        i === 1 ? 'bg-white/10 text-white/60' :
-                                                        'bg-white/5 text-white/40'
-                                                    }`}>
+                                                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${i === 0 ? 'bg-amber-500/20 text-amber-400' :
+                                                            i === 1 ? 'bg-white/10 text-white/60' :
+                                                                'bg-white/5 text-white/40'
+                                                        }`}>
                                                         {ep.rank}
                                                     </span>
                                                     <div className="flex-1 min-w-0">
@@ -435,11 +434,10 @@ export default function RunDetailPage({ params }: { params: { id: string } }) {
                                             {report.capacity_insights.endpoint_analysis.rankings_by_errors.length > 0 ? (
                                                 report.capacity_insights.endpoint_analysis.rankings_by_errors.map((ep, i) => (
                                                     <div key={i} className="flex items-center gap-3 p-3 bg-white/[0.02] rounded-lg">
-                                                        <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                                                            i === 0 ? 'bg-red-500/20 text-red-400' :
-                                                            i === 1 ? 'bg-white/10 text-white/60' :
-                                                            'bg-white/5 text-white/40'
-                                                        }`}>
+                                                        <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${i === 0 ? 'bg-red-500/20 text-red-400' :
+                                                                i === 1 ? 'bg-white/10 text-white/60' :
+                                                                    'bg-white/5 text-white/40'
+                                                            }`}>
                                                             {ep.rank}
                                                         </span>
                                                         <div className="flex-1 min-w-0">
@@ -637,7 +635,7 @@ export default function RunDetailPage({ params }: { params: { id: string } }) {
                                                 <td className="py-3 text-right text-white">{formatLatency(ep.p50)}</td>
                                                 <td className="py-3 text-right text-white">{formatLatency(ep.p95)}</td>
                                                 <td className="py-3 text-right text-white">{formatLatency(ep.p99)}</td>
-                                                <td className={`py-3 text-right ${ep.error_rate > 0.01 ? 'text-red-400' : 'text-emerald-400'}`}>
+                                                <td className={`py-3 text-right ${ep.error_rate > 0.05 ? 'text-red-400' : 'text-emerald-400'}`}>
                                                     {(ep.error_rate * 100).toFixed(2)}%
                                                 </td>
                                             </tr>

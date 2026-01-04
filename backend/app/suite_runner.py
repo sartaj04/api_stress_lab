@@ -35,7 +35,7 @@ SUITE_PROFILES: Dict[SuiteProfile, ProfileConfig] = {
         name="Smoke Test",
         description="Low load baseline to verify system health",
         vus=3,
-        duration=15,
+        duration=35,  # Longer duration for more meaningful baseline data
         load_profile="constant"
     ),
     SuiteProfile.RAMP: ProfileConfig(
@@ -49,7 +49,7 @@ SUITE_PROFILES: Dict[SuiteProfile, ProfileConfig] = {
         name="Spike Test",
         description="Sudden traffic burst to test resilience",
         vus=10,
-        duration=15,
+        duration=35,  # Must be > 30s to allow for spike stages (10s + 10s + 10s + remaining)
         load_profile="spike"
     ),
     SuiteProfile.CHAOS: ProfileConfig(

@@ -114,6 +114,20 @@ def run_load_test(self, run_id: int):
                 timeout=duration + 120  # Extra buffer
             )
             
+            # Check k6 exit code and log any errors
+            k6_had_errors = False
+            if result.returncode != 0:
+                k6_had_errors = True
+                # Store k6 stderr for debugging
+                error_msg = f"k6 exited with code {result.returncode}"
+                if result.stderr:
+                    error_msg += f": {result.stderr[:500]}"  # Limit error message length
+                run.error_message = error_msg
+                
+                # Log stdout too for debugging
+                if result.stdout:
+                    print(f"k6 stdout for run {run_id}: {result.stdout[:1000]}")
+            
             # Store k6 script in MinIO
             script_key = f"runs/{run_id}/script.js"
             upload_file("artifacts", script_key, k6_script.encode(), "application/javascript")
@@ -358,9 +372,13 @@ def parse_k6_output(raw_output: str) -> tuple:
     timeseries = []
     endpoint_data = {}
     total_requests = 0
+    total_errors = 0
     
     # k6 JSON output is newline-delimited JSON
     time_buckets = {}
+    
+    # Track request timestamps for time bucket error correlation
+    request_timestamps = {}  # Maps time_str -> list of (endpoint, is_error)
     
     for line in raw_output.strip().split('\n'):
         if not line:
@@ -380,15 +398,6 @@ def parse_k6_output(raw_output: str) -> tuple:
         value = data.get("value", 0)
         time_str = data.get("time", "")
         
-        # Parse timestamp to bucket (seconds)
-        try:
-            # Extract seconds from ISO timestamp
-            if time_str:
-                # Approximate bucket
-                bucket = hash(time_str[:19]) % 1000
-        except:
-            bucket = 0
-        
         if metric == "http_reqs":
             total_requests += 1
             
@@ -403,18 +412,42 @@ def parse_k6_output(raw_output: str) -> tuple:
                 }
             endpoint_data[endpoint]["count"] += 1
             
-            # Track status code
+            # Track status code and count errors (any status >= 400 is an error)
             status = str(tags.get("status", "unknown"))
             endpoint_data[endpoint]["status_codes"][status] = \
                 endpoint_data[endpoint]["status_codes"].get(status, 0) + 1
+            
+            # Check if this request was an error (4xx or 5xx status)
+            is_error = False
+            try:
+                status_int = int(status)
+                is_error = status_int >= 400
+                if is_error:
+                    endpoint_data[endpoint]["errors"] += 1
+                    total_errors += 1
+            except (ValueError, TypeError):
+                # Non-numeric status (e.g., "unknown") - treat as error
+                is_error = True
+                endpoint_data[endpoint]["errors"] += 1
+                total_errors += 1
+            
+            # Store for time bucket correlation
+            bucket_key = time_str[:19] if time_str else "unknown"
+            if bucket_key not in request_timestamps:
+                request_timestamps[bucket_key] = []
+            request_timestamps[bucket_key].append((endpoint, is_error))
         
         elif metric == "http_req_duration":
-            bucket = int(value / 1000)  # Group by second
+            # Group by time bucket (using the timestamp, not the duration value)
+            bucket_key = time_str[:19] if time_str else "unknown"
+            bucket = hash(bucket_key) % 10000  # Create a reasonable bucket number
+            
             if bucket not in time_buckets:
                 time_buckets[bucket] = {
                     "requests": 0,
                     "errors": 0,
-                    "latencies": []
+                    "latencies": [],
+                    "time_key": bucket_key
                 }
             time_buckets[bucket]["requests"] += 1
             time_buckets[bucket]["latencies"].append(value)
@@ -423,24 +456,40 @@ def parse_k6_output(raw_output: str) -> tuple:
             endpoint = tags.get("endpoint", "unknown")
             if endpoint in endpoint_data:
                 endpoint_data[endpoint]["latencies"].append(value)
+            
+            # Check if this request had an error status via tags
+            status = str(tags.get("status", "0"))
+            try:
+                status_int = int(status)
+                if status_int >= 400:
+                    time_buckets[bucket]["errors"] += 1
+            except (ValueError, TypeError):
+                pass
         
         elif metric == "errors":
-            endpoint = tags.get("endpoint", "unknown")
-            if endpoint in endpoint_data:
-                endpoint_data[endpoint]["errors"] += value
+            # This is from the custom Rate metric - value is 0 or 1
+            if value > 0:
+                endpoint = tags.get("endpoint", "unknown")
+                # Already counted in http_reqs, but track in time bucket if available
+                bucket_key = time_str[:19] if time_str else "unknown"
+                bucket = hash(bucket_key) % 10000
+                if bucket in time_buckets:
+                    # Only add if we haven't already counted this error
+                    pass  # Errors already tracked via status codes
     
     # Convert time buckets to timeseries
-    for bucket, data in sorted(time_buckets.items()):
+    sorted_buckets = sorted(time_buckets.items(), key=lambda x: x[1].get("time_key", ""))
+    for i, (bucket, data) in enumerate(sorted_buckets):
         latencies = sorted(data["latencies"]) if data["latencies"] else [0]
         n = len(latencies)
         
         timeseries.append({
-            "time_bucket": bucket,
+            "time_bucket": i,  # Use sequential index for time ordering
             "rps": data["requests"],
             "error_rate": data["errors"] / data["requests"] if data["requests"] > 0 else 0,
             "p50": latencies[int(n * 0.50)] if n > 0 else 0,
-            "p95": latencies[int(n * 0.95)] if n > 0 else 0,
-            "p99": latencies[int(n * 0.99)] if n > 0 else 0
+            "p95": latencies[min(int(n * 0.95), n - 1)] if n > 0 else 0,
+            "p99": latencies[min(int(n * 0.99), n - 1)] if n > 0 else 0
         })
     
     # Convert endpoint data to metrics
@@ -454,17 +503,31 @@ def parse_k6_output(raw_output: str) -> tuple:
         latencies = sorted(data["latencies"]) if data["latencies"] else [0]
         n = len(latencies)
         
+        # Calculate error rate from status codes if errors count is 0 but we have 4xx/5xx codes
+        error_count = data["errors"]
+        if error_count == 0:
+            # Count 4xx and 5xx status codes as errors
+            for status, count in data["status_codes"].items():
+                try:
+                    if int(status) >= 400:
+                        error_count += count
+                except (ValueError, TypeError):
+                    error_count += count  # Unknown status treated as error
+        
         endpoint_metrics.append({
             "method": method,
             "path": path,
             "count": data["count"],
             "avg_latency": sum(latencies) / n if n > 0 else 0,
             "p50": latencies[int(n * 0.50)] if n > 0 else 0,
-            "p95": latencies[int(n * 0.95)] if n > 0 else 0,
-            "p99": latencies[int(n * 0.99)] if n > 0 else 0,
-            "error_rate": data["errors"] / data["count"] if data["count"] > 0 else 0,
+            "p95": latencies[min(int(n * 0.95), n - 1)] if n > 0 else 0,
+            "p99": latencies[min(int(n * 0.99), n - 1)] if n > 0 else 0,
+            "error_rate": error_count / data["count"] if data["count"] > 0 else 0,
             "status_codes": data["status_codes"]
         })
+    
+    # If we have endpoint data but no timeseries, calculate overall error rate for synthetic data
+    overall_error_rate = total_errors / total_requests if total_requests > 0 else 0
     
     # Generate synthetic data if parsing yielded no results
     if not timeseries:
@@ -472,7 +535,7 @@ def parse_k6_output(raw_output: str) -> tuple:
             timeseries.append({
                 "time_bucket": i,
                 "rps": 10 + i,
-                "error_rate": 0.01,
+                "error_rate": overall_error_rate,  # Use actual error rate
                 "p50": 50 + i * 2,
                 "p95": 150 + i * 5,
                 "p99": 200 + i * 10
@@ -487,8 +550,8 @@ def parse_k6_output(raw_output: str) -> tuple:
             "p50": 80,
             "p95": 200,
             "p99": 350,
-            "error_rate": 0.01,
-            "status_codes": {"200": total_requests or 100}
+            "error_rate": overall_error_rate,
+            "status_codes": {"200": total_requests or 100} if overall_error_rate == 0 else {"500": total_requests or 100}
         })
     
     return timeseries, endpoint_metrics, total_requests or sum(t["rps"] for t in timeseries)
