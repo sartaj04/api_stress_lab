@@ -12,6 +12,9 @@ export const metadata: Metadata = {
     'saas performance testing',
     'api scalability testing',
   ],
+  alternates: {
+    canonical: 'https://apistresslab.com/api-stress-testing-saas',
+  },
   openGraph: {
     title: 'API Stress Testing for SaaS - Scale Without Downtime',
     description: 'Production-grade testing for SaaS companies. Capacity planning, infrastructure ROI, continuous testing.',

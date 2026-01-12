@@ -4,7 +4,13 @@ export function OrganizationSchema() {
     '@type': 'Organization',
     name: 'API Stress Lab',
     url: 'https://apistresslab.com',
-    logo: 'https://apistresslab.com/logo.png',
+    logo: {
+      '@type': 'ImageObject',
+      url: 'https://apistresslab.com/logo.png',
+      width: 512,
+      height: 512,
+    },
+    image: 'https://apistresslab.com/favicon/android-chrome-512x512.png',
     description:
       'AI-powered API capacity assessment. Discover exactly where your API breaks, what fails first, and what to fix before users encounter problems.',
     foundingDate: '2025',

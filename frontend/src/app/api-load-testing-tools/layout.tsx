@@ -12,6 +12,9 @@ export const metadata: Metadata = {
     'api performance testing tools',
     'ai-powered load testing',
   ],
+  alternates: {
+    canonical: 'https://apistresslab.com/api-load-testing-tools',
+  },
   openGraph: {
     title: 'API Load Testing Tools - AI-Powered vs Traditional',
     description: 'No scripting required. AI-powered load testing from your OpenAPI spec. Compare vs k6, JMeter, Locust.',

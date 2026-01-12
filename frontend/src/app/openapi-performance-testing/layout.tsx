@@ -12,6 +12,9 @@ export const metadata: Metadata = {
     'openapi 3.0 testing',
     'automated api testing',
   ],
+  alternates: {
+    canonical: 'https://apistresslab.com/openapi-performance-testing',
+  },
   openGraph: {
     title: 'OpenAPI Performance Testing - Turn Your Spec Into Load Tests',
     description: 'Upload your OpenAPI spec, get AI-generated load tests in 5 minutes. No scripting required.',

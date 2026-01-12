@@ -12,6 +12,9 @@ export const metadata: Metadata = {
     'api performance testing',
     'startup infrastructure testing',
   ],
+  alternates: {
+    canonical: 'https://apistresslab.com/api-testing-for-startups',
+  },
   openGraph: {
     title: 'API Testing for Startups - Prevent Launch Day Disasters',
     description: 'Find critical API bottlenecks before you launch. AI-powered load testing in 5 minutes. Free tier for startups.',
