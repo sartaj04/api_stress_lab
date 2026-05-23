@@ -1,6 +1,6 @@
 # API Stress Lab
 
-API Stress Lab is an open-source tool and dashboard for load testing APIs using OpenAPI specifications. Upload your spec, configure your test parameters, and get actionable, real-time performance insights.
+API Stress Lab is an open-source, AI-powered tool and dashboard for load testing APIs using OpenAPI specifications. Upload your spec, configure your test parameters, and get actionable, real-time performance insights with AI-driven analysis.
 
 It is designed to be easily run locally using Docker Compose or deployed to free-tier cloud platforms.
 
@@ -8,10 +8,10 @@ It is designed to be easily run locally using Docker Compose or deployed to free
 
 ## Features
 
-- 📄 **OpenAPI Integration** - Upload OpenAPI 3.x specs (JSON/YAML) and auto-generate test scenarios.
+- 📄 **OpenAPI Integration** - Upload OpenAPI 3.x specs (JSON/YAML) and auto-generate test scenarios using AI.
 - 📊 **Rich Reports & Metrics** - Real-time metrics including latency percentiles (p50/p95/p99), RPS curves, and error breakdowns.
 - 🔧 **Chaos Testing** - Inject latency, simulate failures, and test burst traffic to evaluate API resilience.
-- 🎯 **Bottleneck Detection** - Automatically identify performance bottlenecks with actionable hints.
+- 🎯 **Bottleneck Detection** - AI-powered analysis to identify performance bottlenecks and suggest actionable fixes.
 - 🔒 **Secure by Default** - Built-in SSRF protection, encrypted credential storage, and user data isolation.
 - ⚡ **Fast Setup** - Run the entire stack locally with a single Docker Compose command.
 
