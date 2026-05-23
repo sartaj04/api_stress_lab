@@ -1,17 +1,19 @@
 # API Stress Lab
 
-A SaaS MVP for load testing APIs using OpenAPI specs. Upload your spec, configure your test, and get actionable performance insights.
+API Stress Lab is an open-source tool and dashboard for load testing APIs using OpenAPI specifications. Upload your spec, configure your test parameters, and get actionable, real-time performance insights.
 
-![API Stress Lab](https://via.placeholder.com/800x400/0f172a/3b82f6?text=API+Stress+Lab)
+It is designed to be easily run locally using Docker Compose or deployed to free-tier cloud platforms.
+
+![API Stress Lab Banner](frontend/public/og-image-home.png)
 
 ## Features
 
-- 📄 **OpenAPI Integration** - Upload OpenAPI 3.x specs (JSON/YAML) and auto-generate test scenarios
-- 📊 **Rich Reports** - Latency percentiles (p50/p95/p99), RPS curves, error breakdowns
-- 🔧 **Chaos Testing** - Inject latency, simulate failures, test burst traffic
-- 🎯 **Bottleneck Detection** - AI-powered hints identify issues and suggest fixes
-- 🔒 **Secure by Default** - SSRF protection, encrypted secrets, multi-tenant isolation
-- ⚡ **Fast Setup** - Run locally with Docker Compose
+- 📄 **OpenAPI Integration** - Upload OpenAPI 3.x specs (JSON/YAML) and auto-generate test scenarios.
+- 📊 **Rich Reports & Metrics** - Real-time metrics including latency percentiles (p50/p95/p99), RPS curves, and error breakdowns.
+- 🔧 **Chaos Testing** - Inject latency, simulate failures, and test burst traffic to evaluate API resilience.
+- 🎯 **Bottleneck Detection** - Automatically identify performance bottlenecks with actionable hints.
+- 🔒 **Secure by Default** - Built-in SSRF protection, encrypted credential storage, and user data isolation.
+- ⚡ **Fast Setup** - Run the entire stack locally with a single Docker Compose command.
 
 ## Tech Stack
 
@@ -19,9 +21,36 @@ A SaaS MVP for load testing APIs using OpenAPI specs. Upload your spec, configur
 - **Backend API**: FastAPI (Python)
 - **Worker/Queue**: Celery + Redis
 - **Database**: PostgreSQL
-- **Object Storage**: MinIO (S3-compatible)
+- **Object Storage**: MinIO (S3-compatible) or Cloudflare R2
 - **Load Runner**: k6
 - **Charts**: Recharts
+
+## Architecture
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   Next.js   │────▶│   FastAPI   │────▶│  PostgreSQL │
+│  Frontend   │     │   Backend   │     │   Database  │
+└─────────────┘     └──────┬──────┘     └─────────────┘
+                           │
+                           ▼
+                    ┌─────────────┐
+                    │    Redis    │
+                    │    Queue    │
+                    └──────┬──────┘
+                           │
+                           ▼
+                    ┌─────────────┐
+                    │   Celery    │────▶│     k6      │
+                    │   Worker    │     │ Load Runner │
+                    └──────┬──────┘     └─────────────┘
+                           │
+                           ▼
+                    ┌─────────────┐
+                    │  MinIO/R2   │
+                    │   Storage   │
+                    └─────────────┘
+```
 
 ## Quick Start
 
@@ -34,136 +63,115 @@ A SaaS MVP for load testing APIs using OpenAPI specs. Upload your spec, configur
 
 ```bash
 # Clone the repository
-cd "api stress lab"
+git clone https://github.com/YOUR_USERNAME/api_stress_lab.git
+cd api_stress_lab
 
-# Copy environment file
-cp .env.example .env
+# Copy environment file template
+cp env.example.txt .env
 ```
 
 ### 2. Start Services
+
+To start the entire stack locally:
 
 ```bash
 docker-compose up --build
 ```
 
-This starts all services:
-- **Frontend**: http://localhost:3000
-- **API**: http://localhost:8000
-- **MinIO Console**: http://localhost:9001
+Once loaded, the services will be available at:
+- **Frontend Web UI**: http://localhost:3000
+- **FastAPI Backend**: http://localhost:8000
+- **MinIO Object Console**: http://localhost:9001
 
-### 3. Create Account
+### 3. Create an Account
 
-1. Open http://localhost:3000
-2. Click "Get Started" or navigate to /signup
-3. Create an account with email and password
+1. Open http://localhost:3000 in your browser.
+2. Click **Get Started** or navigate to `/signup`.
+3. Create an account with an email and password.
 
-### 4. Happy Path Test Flow
+### 4. Running a Test Scenario
 
 #### Step 1: Create a Project
-1. Click "New Project" on the dashboard
-2. Enter a name like "My API Test"
-3. Click "Create Project"
+- Click **New Project** on the dashboard, enter a name (e.g., "User Service API"), and click **Create Project**.
 
 #### Step 2: Configure the Project
-1. Set **Base URL**: `https://jsonplaceholder.typicode.com`
-2. Leave auth empty (this API doesn't require auth)
-3. Click "Save Configuration"
+- Set the **Base URL** (e.g., `https://jsonplaceholder.typicode.com`) and optional authorization credentials, then save the configuration.
 
 #### Step 3: Upload OpenAPI Spec
-1. Click "Upload Spec"
-2. Select `samples/jsonplaceholder.json` from this repo
-3. Wait for upload confirmation
+- Click **Upload Spec** and choose a sample file (e.g., `samples/jsonplaceholder.json` from this repository).
 
 #### Step 4: Generate Scenario
-1. Click "Generate Scenario →" next to the uploaded spec
-2. A scenario will be created with weighted endpoints
+- Click **Generate Scenario** next to the uploaded spec to auto-generate endpoint test scenarios with default weights.
 
 #### Step 5: Run Load Test
-1. Click "Run Test" on the scenario
-2. Configure test parameters:
-   - **Load Profile**: Smoke (for quick test)
-   - **Duration**: 30 seconds
-   - **Virtual Users**: 5
-3. Optional: Enable chaos toggles
-4. Click "🚀 Start Load Test"
+- Click **Run Test** on the generated scenario.
+- Configure parameters such as **Load Profile** (e.g., Smoke, Load, Stress), **Duration**, and **Virtual Users (VUs)**.
+- Optional: Enable chaos options (inject latency or error rates).
+- Click **🚀 Start Load Test**.
 
-#### Step 6: View Report
-1. Wait for test to complete (watch the status)
-2. View detailed metrics:
-   - Latency over time (p50/p95/p99)
-   - RPS over time
-   - Status code distribution
-   - Endpoint breakdown
-   - Bottleneck hints
+#### Step 6: View Performance Report
+- Monitor the test run progress.
+- Once completed, analyze the generated reports including latency over time, request breakdown, and AI-powered bottleneck hints.
 
 ## Sample OpenAPI Specs
 
-Two sample specs are included in `/samples`:
+Two sample specs are included in the `/samples` directory for testing:
 
-1. **jsonplaceholder.json** - JSONPlaceholder API (public, no auth)
-2. **petstore.yaml** - Pet Store API (public, no auth)
+1. **jsonplaceholder.json** - JSONPlaceholder API (public, no authentication required).
+2. **petstore.yaml** - Pet Store API (public, no authentication required).
 
 ## API Endpoints
 
 ### Authentication
-- `POST /auth/signup` - Create account
-- `POST /auth/login` - Login
-- `GET /auth/me` - Get current user
+- `POST /auth/signup` - Register a new account
+- `POST /auth/login` - Authenticate and retrieve token
+- `GET /auth/me` - Retrieve current user profile
 
 ### Projects
-- `GET /projects` - List projects
-- `POST /projects` - Create project
-- `GET /projects/{id}` - Get project
-- `PATCH /projects/{id}` - Update project
-- `POST /projects/{id}/auth` - Set auth credentials
-- `POST /projects/{id}/spec` - Upload OpenAPI spec
-- `POST /projects/{id}/scenario/generate` - Generate scenario
+- `GET /projects` - List all projects
+- `POST /projects` - Create a new project
+- `GET /projects/{id}` - Retrieve project configuration
+- `PATCH /projects/{id}` - Update project parameters
+- `POST /projects/{id}/auth` - Set authentication credentials
+- `POST /projects/{id}/spec` - Upload OpenAPI specification
+- `POST /projects/{id}/scenario/generate` - Generate load test scenario
 
 ### Runs
-- `POST /runs` - Start a test run
-- `GET /runs/{id}` - Get run status
-- `GET /runs/{id}/report` - Get full report
-
-## Tier Limits
-
-| Tier | Monthly Requests | Per-Run Max | Max Duration | Max VUs |
-|------|------------------|-------------|--------------|---------|
-| Free | 10,000 | 1,000 | 60s | 10 |
-| Dev | 100,000 | 10,000 | 300s | 50 |
-| Pro | 1,000,000 | 100,000 | 600s | 200 |
+- `POST /runs` - Trigger a load test run
+- `GET /runs/{id}` - Retrieve run status
+- `GET /runs/{id}/report` - Retrieve detailed performance report
 
 ## Security Features
 
 ### SSRF Protection
-- Blocks private IP ranges (10.x, 172.16.x, 192.168.x, etc.)
-- Blocks localhost and link-local addresses
-- Blocks cloud metadata endpoints (169.254.169.254)
-- Only allows HTTP/HTTPS schemes
+- Out-of-the-box protection blocks private IP ranges (`10.x`, `172.16.x`, `192.168.x`), localhost, and loopback/link-local addresses to prevent Server-Side Request Forgery.
+- Blocks access to cloud metadata endpoints (`169.254.169.254`).
+- Strictly permits HTTP and HTTPS protocols.
 
-### Secrets Management
-- Auth credentials encrypted at rest using Fernet (AES-128)
-- Encryption key configured via environment variable
+### Credentials Encryption
+- User-supplied API keys and credentials are encrypted at rest using **Fernet (AES-128)** encryption.
+- Encryption key is configured via the `ENCRYPTION_KEY` environment variable.
 
-### Multi-Tenancy
-- All data isolated by user ID
-- JWT-based authentication
-- API key support for programmatic access
+### User Isolation & Auth
+- Secure data isolation by user account.
+- JWT-based authentication for API endpoints.
 
 ## Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `POSTGRES_USER` | Database user | apistress |
-| `POSTGRES_PASSWORD` | Database password | apistress123 |
-| `POSTGRES_DB` | Database name | apistresslab |
-| `MINIO_ROOT_USER` | MinIO access key | minioadmin |
-| `MINIO_ROOT_PASSWORD` | MinIO secret key | minioadmin123 |
-| `JWT_SECRET` | JWT signing secret | (change in prod!) |
-| `ENCRYPTION_KEY` | Secrets encryption key | (change in prod!) |
+| Variable | Description | Default / Example |
+|----------|-------------|-------------------|
+| `DATABASE_URL` | PostgreSQL Connection URI | `postgresql://apistress:apistress123@localhost:5432/apistresslab` |
+| `REDIS_URL` | Redis connection URI | `redis://localhost:6379/0` |
+| `S3_ENDPOINT` | S3/Object Storage Endpoint | Local MinIO or Cloudflare R2 |
+| `S3_ACCESS_KEY` | Access Key ID | Storage service access key |
+| `S3_SECRET_KEY` | Secret Access Key | Storage service secret key |
+| `JWT_SECRET` | JWT signing secret | (Change to a secure random key in production) |
+| `ENCRYPTION_KEY` | Fernet credentials encryption key | (Change to a 32-byte key in production) |
 
-## Development
+## Development Setup
 
-### Running Backend Only
+### Running Backend Independently
+
 ```bash
 cd backend
 pip install -r requirements.txt
@@ -171,71 +179,25 @@ alembic upgrade head
 uvicorn app.main:app --reload
 ```
 
-### Running Frontend Only
+### Running Frontend Independently
+
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-### Running Worker Only
+### Running Celery Worker Independently
+
 ```bash
 cd backend
 celery -A app.worker.celery_app worker --loglevel=info
 ```
 
-## Architecture
+## Deployment
 
-```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Next.js   │────▶│   FastAPI   │────▶│  PostgreSQL │
-│  Frontend   │     │   Backend   │     │   Database  │
-└─────────────┘     └──────┬──────┘     └─────────────┘
-                          │
-                          ▼
-                   ┌─────────────┐
-                   │    Redis    │
-                   │    Queue    │
-                   └──────┬──────┘
-                          │
-                          ▼
-                   ┌─────────────┐     ┌─────────────┐
-                   │   Celery    │────▶│     k6      │
-                   │   Worker    │     │ Load Runner │
-                   └──────┬──────┘     └─────────────┘
-                          │
-                          ▼
-                   ┌─────────────┐
-                   │    MinIO    │
-                   │   Storage   │
-                   └─────────────┘
-```
-
-## Troubleshooting
-
-### Services won't start
-```bash
-docker-compose down -v
-docker-compose up --build
-```
-
-### Database connection issues
-```bash
-docker-compose logs postgres
-```
-
-### Worker not processing jobs
-```bash
-docker-compose logs worker
-```
-
-### Frontend can't reach API
-Check CORS configuration and ensure API is running on port 8000.
+For a detailed walkthrough on deploying API Stress Lab on free-tier services (Vercel, Render, Supabase, Upstash, Cloudflare R2, and Railway), check the [Deployment Guide](DEPLOYMENT.md).
 
 ## License
 
-MIT License - See LICENSE file for details.
-
----
-
-Built with ❤️ for developers who care about API performance.
+This project is licensed under the MIT License - see the `LICENSE` file for details.
